@@ -1,0 +1,48 @@
+<resources>
+    <string name="app_name">ToDoApplication</string>
+    <string name="add_name">Add Name</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancel</string>
+    <string name="name_list">Name list</string>
+    <string name="preference">preference</string>
+    <string name="space" />
+    <string name="kama">,</string>
+    <string name="project_id">Project Id</string>
+    <string name="project_name">Project name</string>
+    <string name="limit">X/Y</string>
+    <string name="add">Add</string>
+    <string name="search_name">Search Name</string>
+    <string name="project">Project</string>
+    <string name="enter_the_items">Enter the items</string>
+    <string name="add_list">Add List</string>
+    <string name="todo_application">Todo application</string>
+    <string name="todo_list">Todo List</string>
+    <string name="menu">Menu</string>
+    <string name="back">Back</string>
+    <string name="search">Search</string>
+    <string name="next">Next</string>
+    <string name="save">Save</string>
+    <string name="enter_the_title">Enter the title</string>
+    <string name="title">Title</string>
+    <string name="enter_the_name">Enter the name</string>
+    <string name="name">Name</string>
+    <string name="s">S</string>
+    <string name="user_title">User Title</string>
+    <string name="user">User</string>
+    <string name="user_id">User Id</string>
+    <string name="enter_the_project">enter the project</string>
+    <string name="project_list">Project List</string>
+    <string-array name="filter_options">
+        <item>All</item>
+        <item>Completed</item>
+        <item>Not Completed</item>
+    </string-array>
+
+    <string-array name="page_filter">
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+        <item>25</item>
+    </string-array>
+</resources>

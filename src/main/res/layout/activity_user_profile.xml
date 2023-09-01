@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/darker_gray">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp">
+
+        <ImageButton
+            android:id="@+id/backMenu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="5dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/arrow_back"
+            android:contentDescription="@string/back" />
+
+        <TextView
+            android:id="@+id/userProfile"
+            android:layout_width="130dp"
+            android:layout_height="130dp"
+            android:layout_centerHorizontal="true"
+            android:background="@drawable/background"
+            android:gravity="center"
+            android:text="@string/s"
+            android:textSize="45sp"
+            android:textStyle="bold"/>
+
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/name"
+        android:textColor="@android:color/black"
+        android:textSize="20sp"
+        android:layout_marginTop="5dp"
+        android:layout_marginStart="25dp"/>
+
+    <EditText
+        android:id="@+id/editUserName"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:hint="@string/enter_the_name"
+        android:padding="15dp"
+        android:inputType="text" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/title"
+        android:textColor="@android:color/black"
+        android:layout_marginStart="25dp"
+        android:textSize="20sp"
+        android:layout_marginTop="30dp"/>
+
+    <EditText
+        android:id="@+id/editTitle"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="25dp"
+        android:hint="@string/enter_the_title"
+        android:padding="15dp"
+        android:importantForAutofill="yes"
+        android:inputType="text" />
+
+    <RelativeLayout
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="50dp"
+        android:padding="16dp">
+
+        <Button
+            android:id="@+id/cancelButton"
+            android:layout_width="175dp"
+            android:layout_height="48dp"
+            android:layout_alignParentStart="true"
+            android:layout_marginEnd="8dp"
+            android:layout_toStartOf="@+id/saveButton"
+            android:text="@string/cancel"
+            android:textColor="@android:color/white"
+            android:gravity="center"
+            android:backgroundTint="@null"/>
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="175dp"
+            android:layout_height="48dp"
+            android:layout_alignParentEnd="true"
+            android:text="@string/save"
+            android:textColor="@android:color/white"
+            android:gravity="center"
+            android:tintMode="src_over"
+            android:backgroundTint="@null"/>
+    </RelativeLayout>
+
+</LinearLayout>
