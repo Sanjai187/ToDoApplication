@@ -25,6 +25,5 @@ public class ProjectList {
     public List<Project> getAllList() {
         return projectList;
     }
-
 }
 

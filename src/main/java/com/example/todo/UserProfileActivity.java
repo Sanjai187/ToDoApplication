@@ -1,4 +1,4 @@
-package com.example.todo.service;
+package com.example.todo;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,16 +9,12 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.todo.R;
 import com.example.todo.model.UserProfile;
 
 public class UserProfileActivity extends AppCompatActivity {
 
-    private ImageButton backButton;
     private EditText userTitle;
     private EditText userName;
-    private Button cancelButton;
-    private Button saveButton;
     private TextView profileIcon;
 
     @Override
@@ -26,11 +22,11 @@ public class UserProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_profile);
 
-        backButton = findViewById(R.id.backMenu);
+        final ImageButton backButton = findViewById(R.id.backMenu);
+        final Button cancelButton = findViewById(R.id.cancelButton);
+        final Button saveButton = findViewById(R.id.saveButton);
         userTitle = findViewById(R.id.editTitle);
         userName = findViewById(R.id.editUserName);
-        cancelButton = findViewById(R.id.cancelButton);
-        saveButton = findViewById(R.id.saveButton);
         profileIcon = findViewById(R.id.userProfile);
         final UserProfile userProfile = new UserProfile();
 

@@ -7,6 +7,9 @@ public class Query {
     private String search;
     private List<String> searchAttribute;
     private Filter filter;
+    private int skip;
+    private int limit = 20;
+    private Query query;
 
     public String getSearch() {
         return search;
@@ -30,5 +33,25 @@ public class Query {
 
     public void setFilter(final Filter filter) {
         this.filter = filter;
+    }
+
+    public int getSkip() {
+        return skip;
+    }
+
+    public void setSkip(int skip) {
+        this.skip = skip;
+    }
+
+    public int getLimit() {
+        return limit;
+    }
+
+    public void setLimit(int limit) {
+        this.limit = limit;
+    }
+
+    public Query getQuery() {
+        return query;
     }
 }

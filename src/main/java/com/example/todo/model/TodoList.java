@@ -8,9 +8,11 @@ import java.util.stream.Collectors;
 public class TodoList {
 
     private List<Todo> todoList;
+   private final Query query;
 
     public TodoList() {
         this.todoList = new ArrayList<>();
+        this.query = new Query();
     }
 
     public void add(final Todo todo) {
@@ -23,5 +25,9 @@ public class TodoList {
 
     public List<Todo> getAllList() {
         return todoList;
+    }
+
+    public Query getQuery() {
+        return query;
     }
 }
