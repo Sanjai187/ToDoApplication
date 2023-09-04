@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">ToDoApplication</string>
     <string name="add_name">Add Name</string>
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="name_list">Name list</string>
     <string name="preference">preference</string>
@@ -30,8 +30,11 @@
     <string name="user_title">User Title</string>
     <string name="user">User</string>
     <string name="user_id">User Id</string>
-    <string name="enter_the_project">enter the project</string>
+    <string name="enter_the_project">Enter the project</string>
     <string name="project_list">Project List</string>
+    <string name="navigation_view">Navigation View</string>
+    <string name="edit">Edit</string>
+    <string name="search_view">Search View</string>
     <string-array name="filter_options">
         <item>All</item>
         <item>Completed</item>
@@ -44,5 +47,6 @@
         <item>15</item>
         <item>20</item>
         <item>25</item>
+        <item>30</item>
     </string-array>
 </resources>
