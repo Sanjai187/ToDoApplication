@@ -1,6 +1,6 @@
 package com.example.todo.database.table;
 
-public class UserContract {
+public class UserTable {
 
     public final String TABLE_NAME = "USERS";
     public final String COLUMN_ID = "ID";

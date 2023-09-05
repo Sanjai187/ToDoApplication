@@ -9,6 +9,8 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.todo.dao.UserDao;
+import com.example.todo.dao.impl.UserDaoImpl;
 import com.example.todo.model.UserProfile;
 
 public class UserProfileActivity extends AppCompatActivity {
@@ -16,6 +18,7 @@ public class UserProfileActivity extends AppCompatActivity {
     private EditText userTitle;
     private EditText userName;
     private TextView profileIcon;
+    private UserDao userDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +32,7 @@ public class UserProfileActivity extends AppCompatActivity {
         userName = findViewById(R.id.editUserName);
         profileIcon = findViewById(R.id.userProfile);
         final UserProfile userProfile = new UserProfile();
+        userDao = new UserDaoImpl(this);
 
         userProfile.setUserName(getIntent().getStringExtra(getString(R.string.user)));
         userProfile.setTitle(getIntent().getStringExtra(getString(R.string.user_title)));
@@ -44,12 +48,25 @@ public class UserProfileActivity extends AppCompatActivity {
             userProfile.setTitle(userTitle.getText().toString());
             profileIcon.setText(userProfile.getProfileIcon());
             final Intent intent = new Intent();
+            final Long userId = userDao.insert(userProfile);
 
             intent.putExtra(getString(R.string.user), userProfile.getUserName());
             intent.putExtra(getString(R.string.user_title), userProfile.getTitle());
-            intent.putExtra(getString(R.string.user_id), 0L);
+            intent.putExtra(getString(R.string.user_id), userId);
             setResult(RESULT_OK, intent);
             finish();
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        userDao.open();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        userDao.close();
     }
 }

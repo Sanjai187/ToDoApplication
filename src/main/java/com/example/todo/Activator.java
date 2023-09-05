@@ -6,7 +6,7 @@ import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.todo.controller.ActivitorController;
+import com.example.todo.controller.ActivatorController;
 import com.example.todo.service.ActivatorService;
 
 /**
@@ -18,10 +18,10 @@ import com.example.todo.service.ActivatorService;
  * @author sanjai
  * @version 1.0
  */
-public class Activitor extends AppCompatActivity implements ActivatorService{
+public class Activator extends AppCompatActivity implements ActivatorService{
 
     private String selectedList;
-    private ActivitorController activitorController;
+    private ActivatorController activatorController;
 
     /**
      * <p>
@@ -36,14 +36,16 @@ public class Activitor extends AppCompatActivity implements ActivatorService{
         setContentView(R.layout.activity_main);
 
         final ImageButton menuButton = findViewById(R.id.menuButton);
-        activitorController = new ActivitorController(this, this);
+        activatorController = new ActivatorController(this, this);
 
-        menuButton.setOnClickListener(view -> activitorController.onClickMenu(selectedList));
+        menuButton.setOnClickListener(view -> {
+            activatorController.onClickMenu(selectedList);
+        });
     }
 
     @Override
     public void goToNavigation(final String selectedList) {
-        final Intent intent = new Intent(Activitor.this, NavigationActivity.class);
+        final Intent intent = new Intent(Activator.this, NavigationActivity.class);
 
         intent.putExtra(getString(R.string.navigation_view), selectedList);
         startActivity(intent);

@@ -7,6 +7,7 @@ public class Project {
     private Long id;
     private String label;
     private Long userId;
+    private Long order;
 
     public Project(final String label) {
         this.label = label;
@@ -34,6 +35,14 @@ public class Project {
 
     public void setUserId(final Long userId) {
         this.userId = userId;
+    }
+
+    public Long getOrder() {
+        return order;
+    }
+
+    public void setOrder(Long order) {
+        this.order = order;
     }
 
     @NonNull

@@ -13,6 +13,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.todo.controller.NavigationController;
+import com.example.todo.dao.ProjectDao;
+import com.example.todo.dao.impl.ProjectDaoImpl;
 import com.example.todo.model.Project;
 import com.example.todo.model.ProjectList;
 import com.example.todo.model.UserProfile;
@@ -31,6 +33,7 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
     private Long userId;
     private EditText editText;
     private ProjectList projectList;
+    private ProjectDao projectDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +51,7 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
         userName = findViewById(R.id.userName);
         userTitle = findViewById(R.id.userTitle);
         navigationController = new NavigationController(this, this, projectList);
+        projectDao = new ProjectDaoImpl(this);
         arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, projectList.getAllList());
 
         listView.setAdapter(arrayAdapter);
@@ -80,6 +84,26 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
         arrayAdapter.notifyDataSetChanged();
     }
 
+    public void goToListPage(final Project project) {
+        final Intent intent = new Intent(NavigationActivity.this, TodoActivity.class);
+
+        intent.putExtra(getString(R.string.project_id), project.getId());
+        intent.putExtra(getString(R.string.project_name), project.getLabel());
+        startActivity(intent);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        projectDao.open();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        projectDao.close();
+    }
+
     @Override
     public void addProjectList() {
         final String text = editText.getText().toString().trim();
@@ -90,7 +114,10 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
             project.setId(id);
             project.setLabel(text);
             project.setUserId(userId);
+            project.setOrder(id);
             projectList.add(project);
+            projectDao.insert(project);
+
             arrayAdapter.notifyDataSetChanged();
             editText.getText().clear();
         }
@@ -100,14 +127,6 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
         int visibility = editText.getVisibility() == View.GONE ? View.VISIBLE : View.GONE;
         editText.setVisibility(visibility);
         addButton.setVisibility(visibility);
-    }
-
-    public void goToListPage(final Project project) {
-        final Intent intent = new Intent(NavigationActivity.this, TodoActivity.class);
-
-        intent.putExtra(getString(R.string.project_id), project.getId());
-        intent.putExtra(getString(R.string.project_name), project.getLabel());
-        startActivity(intent);
     }
 
     @Override
