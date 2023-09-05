@@ -25,7 +25,7 @@
             android:name=".UserProfileActivity"
             android:exported="false" />
         <activity
-            android:name=".Activitor"
+            android:name=".Activator"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

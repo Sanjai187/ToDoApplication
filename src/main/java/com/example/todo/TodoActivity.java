@@ -20,6 +20,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.todo.controller.TodoController;
+import com.example.todo.dao.ItemDao;
+import com.example.todo.dao.impl.ItemDaoImpl;
 import com.example.todo.model.Todo;
 import com.example.todo.model.TodoList;
 import com.example.todo.service.TodoService;
@@ -54,11 +56,12 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
     private int currentPage = 1;
     private TextView pageNumber;
     private int pageSize = 5;
+    private ItemDao itemDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_childproject);
+        setContentView(R.layout.activity_todo);
 
         initializeData();
         initializeViews();
@@ -81,6 +84,7 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
 
     private void initializeViews() {
         todoController = new TodoController(this, this);
+        itemDao = new ItemDaoImpl(this);
         backButton = findViewById(R.id.backButton1);
         search = findViewById(R.id.search);
         addList = findViewById(R.id.addButton);
@@ -110,6 +114,18 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
         todoController.setupFilterSpinner();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        itemDao.open();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        itemDao.close();
+    }
+
     /**
      * <p>
      * Add a new item to the todo list
@@ -125,6 +141,7 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
             todo.setId(++id);
             todo.setStatus("Not completed");
             todoList.add(todo);
+            itemDao.insert(todo);
             updateTableLayout();
             updatePageNumber();
             saveTodoList();
@@ -222,6 +239,7 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
                 todo.setChecked();
             }
             saveCheckedBoxState(todo.getLabel(), isChecked);
+            itemDao.onUpdate(todo);
         });
 
         tableRow.addView(checkBox);
@@ -236,6 +254,7 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
     private void removeItem(final TableRow row, final Todo todo) {
         todoList.remove(todo.getId());
         layout.removeView(row);
+        itemDao.onDelete(todo.getId());
         final int totalPageCount = (int) Math.ceil((double) todoItems.size() / pageSize);
 
         if (currentPage > totalPageCount) {
@@ -243,6 +262,21 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
         }
         updatePageNumber();
         saveTodoList();
+    }
+
+    /**
+     * <p>
+     * View the child project table
+     * </p>
+     */
+    private void viewTable() {
+        layout.removeAllViews();
+
+        for (final Todo todo : todoList.getAllList()) {
+            createTableRow(todo);
+            saveTodoList();
+            editText.getText().clear();
+        }
     }
 
     private void saveCheckedBoxState(final String label, final boolean isChecked) {
@@ -265,6 +299,7 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
         final String[] todoItems = savedTodoItems.split(getString(R.string.kama));
 
         for (final String todoItem : todoItems) {
+
             if (!todoItem.isEmpty()) {
                 final Todo todo = new Todo(todoItem);
 

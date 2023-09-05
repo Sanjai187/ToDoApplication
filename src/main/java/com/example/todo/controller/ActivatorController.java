@@ -1,15 +1,15 @@
 package com.example.todo.controller;
 
-import com.example.todo.Activitor;
+import com.example.todo.Activator;
 import com.example.todo.service.ActivatorService;
 
-public class ActivitorController {
+public class ActivatorController {
 
-    private final Activitor activitor;
+    private final Activator activator;
     private final ActivatorService activatorService;
 
-    public ActivitorController(final Activitor activitor, final ActivatorService activatorService) {
-        this.activitor = activitor;
+    public ActivatorController(final Activator activator, final ActivatorService activatorService) {
+        this.activator = activator;
         this.activatorService = activatorService;
     }
 
