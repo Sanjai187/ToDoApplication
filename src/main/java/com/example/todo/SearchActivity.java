@@ -2,29 +2,32 @@ package com.example.todo;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.example.todo.controller.SearchController;
+import com.example.todo.dao.ItemDao;
+import com.example.todo.dao.impl.ItemDaoImpl;
 import com.example.todo.model.Filter;
 import com.example.todo.model.Query;
 import com.example.todo.model.Todo;
 import com.example.todo.model.TodoList;
 import com.example.todo.service.SearchService;
+import com.example.todo.todoadapter.ItemTouchHelperCallBack;
+import com.example.todo.todoadapter.OnItemClickListener;
+import com.example.todo.todoadapter.TodoAdapter;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -32,8 +35,6 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
 
     private SearchController searchController;
     private TodoList todoList;
-    private EditText editText;
-    private TableLayout layout;
     private ImageView backButton;
     private String selectedList;
     private SearchView searchView;
@@ -46,6 +47,9 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
     private ImageView next;
     private int pageSize = 5;
     private Query query;
+    private ItemDao itemDao;
+    private Long projectId;
+    private TodoAdapter todoAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,14 +58,27 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
 
         initializeData();
         initializeViews();
+        initRecyclerView();
         initializeListeners();
-        loadTodoList(selectedList);
+        loadTodoItemsFromDB(projectId);
+    }
+
+    private void initializeData() {
+        projectId = getIntent().getLongExtra(getString(R.string.project_id), 0L);
+        selectedList = getIntent().getStringExtra(getString(R.string.search_view));
+        todoList = new TodoList();
+        todoItems = todoList.getAllList();
+        query = todoList.getQuery();
+
+        if (selectedList != null) {
+            TextView textView = findViewById(R.id.textView);
+            textView.setText(selectedList);
+        }
     }
 
     private void initializeViews() {
         searchController = new SearchController(this,this);
-        layout = findViewById(R.id.tableLayout);
-        editText = findViewById(R.id.editText);
+        itemDao = new ItemDaoImpl(this);
         backButton = findViewById(R.id.backButton1);
         searchView = findViewById(R.id.searchbar);
         spinner = findViewById(R.id.statusbutton);
@@ -82,30 +99,60 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
         updatePageNumber();
     }
 
-    private void initializeData() {
-        selectedList = getIntent().getStringExtra(getString(R.string.search_view));
-        todoList = new TodoList();
-        todoItems = todoList.getAllList();
-        query = todoList.getQuery();
+    private void initRecyclerView() {
+        final RecyclerView recyclerView = findViewById(R.id.recyclerViewList);
 
-        if (selectedList != null) {
-            TextView textView = findViewById(R.id.textView);
-            textView.setText(selectedList);
-        }
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        todoAdapter = new TodoAdapter(todoItems);
+
+        recyclerView.setAdapter(todoAdapter);
+        final ItemTouchHelper.Callback callback = new ItemTouchHelperCallBack(todoAdapter);
+        final ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+
+        touchHelper.attachToRecyclerView(recyclerView);
+        todoAdapter.setOnClickListener(new OnItemClickListener() {
+            @Override
+            public void onCheckBoxClick(final com.example.todo.model.Todo todo) {
+                final int position = todoItems.indexOf(todo);
+
+                if (-1 != position) {
+                    final com.example.todo.model.Todo updatedItem = todoItems.get(position);
+
+                    updatedItem.setStatus(updatedItem.getStatus() == com.example.todo.model.Todo.Status.COMPLETED
+                            ? com.example.todo.model.Todo.Status.NOT_COMPLETED
+                            : com.example.todo.model.Todo.Status.COMPLETED);
+                }
+                itemDao.onUpdate(todo);
+                todoAdapter.notifyItemChanged(position);
+            }
+
+            @Override
+            public void onCloseIconClick(final com.example.todo.model.Todo todo) {
+                final int position = todoItems.indexOf(todo);
+
+                if (-1 != position) {
+                    final com.example.todo.model.Todo removedItem = todoItems.remove(position);
+
+                    todoList.remove(todo.getId());
+                    itemDao.onDelete(removedItem.getId());
+                    todoAdapter.notifyItemRemoved(position);
+                    updatePageNumber();
+                }
+            }
+        });
     }
-
     @Override
     public void setupSearchView() {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(final String query) {
-                filterTableLayout(query);
+                filterTableLayout(query.toLowerCase());
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(final String newText) {
-                filterTableLayout(newText);
+                filterTableLayout(newText.toLowerCase());
                 return true;
             }
         });
@@ -119,15 +166,21 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
      * @param newText representing filter the table based on the entered new text
      */
     private void filterTableLayout(final String newText) {
-        layout.removeAllViews();
         query.setSearch(newText);
+        todoItems = itemDao.getTodoItems(projectId);
+        final List<Todo> searchAllItems = new ArrayList<>();
 
         for (final Todo todo : todoList.getAllList()) {
 
             if (todo.getLabel().toLowerCase().contains(newText.toLowerCase())) {
-                createTableRow(todo);
+                searchAllItems.add(todo);
             }
         }
+        todoItems = searchAllItems;
+        currentPage = 1;
+
+        todoAdapter.clearProjects();
+        todoAdapter.addProjects(todoItems);
     }
 
     @Override
@@ -143,35 +196,55 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
                 filter.setAttribute("Status");
                 switch (position) {
                     case 0: {
-                        layout.removeAllViews();
+                        todoItems = itemDao.getTodoItems(projectId);
+                        final List<Todo> allItem = new ArrayList<>();
 
                         for (final Todo todo : todoList.getAllList()) {
                             filter.setValues(Collections.singletonList("All"));
                             query.setFilter(filter);
-                            createTableRow(todo);
+                            allItem.add(todo);
                         }
+                        todoItems = allItem;
+                        currentPage = 1;
+
+                        todoAdapter.clearProjects();
+                        todoAdapter.addProjects(todoItems);
                         break;
                     }
                     case 1: {
-                        layout.removeAllViews();
+                        final List<Todo> completedItem = new ArrayList<>();
+
                         for (final Todo todo : todoList.getAllList()) {
-                            if (todo.isChecked()) {
+
+                            if (todo.getStatus() == Todo.Status.COMPLETED) {
                                 filter.setValues(Collections.singletonList("Completed"));
                                 query.setFilter(filter);
-                                createTableRow(todo);
+                                completedItem.add(todo);
                             }
                         }
+                        todoItems = completedItem;
+                        currentPage = 1;
+
+                        todoAdapter.clearProjects();
+                        todoAdapter.addProjects(todoItems);
                         break;
                     }
                     case 2: {
-                        layout.removeAllViews();
+                        final List<Todo> notCompletedItem = new ArrayList<>();
+
                         for (final Todo todo : todoList.getAllList()) {
-                            if (!todo.isChecked()) {
+
+                            if (todo.getStatus() == Todo.Status.NOT_COMPLETED) {
                                 filter.setValues(Collections.singletonList("Not Completed"));
                                 query.setFilter(filter);
-                                createTableRow(todo);
+                                notCompletedItem.add(todo);
                             }
                         }
+                        todoItems = notCompletedItem;
+                        currentPage = 1;
+
+                        todoAdapter.clearProjects();
+                        todoAdapter.addProjects(todoItems);
                         break;
                     }
                 }
@@ -194,20 +267,19 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
                                        final int i, final long id) {
                 pageSize = Integer.parseInt(parent.getItemAtPosition(i).toString());
 
-                updateTableLayout();
+                updateRecyclerView();
                 updatePageNumber();
             }
 
             @Override
             public void onNothingSelected(final AdapterView<?> parent) {}
         });
-        loadTodoList(selectedList);
     }
 
     private void navigateToNextPage() {
         if ((currentPage * pageSize) < todoItems.size()) {
             currentPage++;
-            updateTableLayout();
+            updateRecyclerView();
             updatePageNumber();
         }
     }
@@ -215,152 +287,19 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
     private void navigateToPreviousPage() {
         if (currentPage > 1) {
             currentPage--;
-            updateTableLayout();
+            updateRecyclerView();
             updatePageNumber();
         }
     }
 
-    /**
-     * <p>
-     * Create a table row for a todo item
-     * </p>
-     *
-     * @param todo representing todo items
-     */
-    public void createTableRow(final Todo todo) {
-        layout.removeAllViews();
-        final TableRow tableRow = new TableRow(this);
-        final CheckBox checkBox = new CheckBox(this);
-        final TextView textView = new TextView(this);
-        final ImageView closeIcon = new ImageView(this);
+    private void loadTodoItemsFromDB(final Long selectedProjectId) {
+        todoItems = itemDao.getTodoItems(selectedProjectId);
 
-        tableRow.setLayoutParams(new TableLayout.LayoutParams(
-                TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT
-        ));
-
-        checkBox.setChecked(getCheckedBoxState(todo.getLabel()));
-        checkBox.setOnCheckedChangeListener((compoundButton, isChecked) -> {
-            if (isChecked) {
-                textView.setTextColor(Color.RED);
-                todo.setChecked();
-            } else {
-                textView.setTextColor(Color.BLACK);
-                todo.setChecked();
-            }
-            saveCheckedBoxState(todo.getLabel(), isChecked);
-        });
-
-        tableRow.addView(checkBox);
-        textView.setText(todo.getLabel());
-        tableRow.addView(textView);
-
-        closeIcon.setImageResource(R.drawable.close);
-        closeIcon.setOnClickListener(view -> removeItem(tableRow, todo));
-        tableRow.addView(closeIcon);
-
-        layout.addView(tableRow);
-    }
-
-    /**
-     * <p>
-     * View the child project table
-     * </p>
-     */
-    private void viewTable() {
-        layout.removeAllViews();
-
-        for (final Todo todo : todoList.getAllList()) {
-            createTableRow(todo);
-            saveTodoList();
-            editText.getText().clear();
+        if (null != todoItems) {
+            todoAdapter.clearProjects();
+            todoAdapter.addProjects(todoItems);
         }
-    }
-
-    /**
-     * <p>
-     * Remove an item from the table layout
-     * </p>
-     *
-     * @param todo representing todo item
-     */
-    public void removeItem(final TableRow row, final Todo todo) {
-        layout.removeView(row);
-        todoList.remove(todo.getId());
-        final int totalPageCount = (int) Math.ceil((double) todoItems.size()/ pageSize);
-
-        if (currentPage > totalPageCount) {
-            currentPage = totalPageCount;
-        }
-        updatePageNumber();
-        saveTodoList();
-    }
-
-    /**
-     * <p>
-     * Save the check box state to shared preferences
-     * </p>
-     *
-     * @param label representing list name
-     * @param isChecked representing list is checked or not checked
-     */
-    private void saveCheckedBoxState(final String label, final boolean isChecked) {
-        final SharedPreferences sharedPreferences = getSharedPreferences(getString(R.string.preference), MODE_PRIVATE);
-        final SharedPreferences.Editor editor = sharedPreferences.edit();
-
-        editor.putBoolean(label, isChecked);
-        editor.apply();
-    }
-
-    /**
-     * <p>
-     * Get the check box state from shared preferences
-     * </p>
-     *
-     * @param label representing list name
-     */
-    private boolean getCheckedBoxState(final String label) {
-        final SharedPreferences sharedPreferences = getSharedPreferences(getString(R.string.preference), MODE_PRIVATE);
-
-        return sharedPreferences.getBoolean(label, false);
-    }
-
-    /**
-     * <p>
-     * Load saved items associated with a specific list name from shared preferences
-     * </p>
-     *
-     * @param listName Refers name of the todo list from which to load items
-     */
-    private void loadTodoList(final String listName) {
-        final SharedPreferences sharedPreferences = getSharedPreferences(getString(R.string.preference), MODE_PRIVATE);
-        final String savedTodoItems = sharedPreferences.getString(listName, getString(R.string.space));
-        final String[] todoItems = savedTodoItems.split(getString(R.string.kama));
-
-        for (final String todoItem : todoItems) {
-            if (!todoItem.isEmpty()) {
-                final Todo todo = new Todo(todoItem);
-
-                todoList.add(todo);
-            }
-        }
-        viewTable();
-    }
-
-    /**
-     * <p>
-     * Saved the list of Items on shared preferences
-     * </p>
-     */
-    private void saveTodoList() {
-        final SharedPreferences sharedPreferences = getSharedPreferences(getString(R.string.preference), MODE_PRIVATE);
-        final SharedPreferences.Editor editor = sharedPreferences.edit();
-        final StringBuilder todoItems = new StringBuilder();
-
-        for (final Todo todo : todoList.getAllList()) {
-            todoItems.append(todo.getLabel()).append(getString(R.string.kama));
-        }
-        editor.putString(selectedList, todoItems.toString());
-        editor.apply();
+        todoAdapter.updateTodoItems(todoItems);
     }
 
     @SuppressLint("DefaultLocale")
@@ -370,15 +309,29 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
         pageNumber.setText(String.format("%d / %d", currentPage, totalPage));
     }
 
-    private void updateTableLayout() {
-        layout.removeAllViews();
-        final int startIndex = (currentPage - 1) * pageSize;
-        final int endIndex = Math.min(startIndex + pageSize, todoItems.size());
+    private void updateRecyclerView() {
+        int startIndex = (currentPage - 1) * pageSize;
+        int endIndex = Math.min(startIndex + pageSize, todoItems.size());
 
-        for (int i = startIndex; i < endIndex; i++) {
-            final Todo todo = todoItems.get(i);
+        List<com.example.todo.model.Todo> pageItems = todoItems.subList(startIndex, endIndex);
+        todoAdapter.updateTodoItems(pageItems);
+    }
 
-            createTableRow(todo);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        itemDao.open();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (null != todoItems) {
+            for (final Todo todo : todoItems) {
+                itemDao.onUpdate(todo);
+            }
         }
+        itemDao.close();
     }
 }

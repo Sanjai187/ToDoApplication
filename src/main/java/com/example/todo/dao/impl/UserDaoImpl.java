@@ -1,7 +1,9 @@
 package com.example.todo.dao.impl;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.example.todo.dao.UserDao;
@@ -20,17 +22,6 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public void open() {
-        database = dbHelper.getWritableDatabase();
-        database = dbHelper.getReadableDatabase();
-    }
-
-    @Override
-    public void close() {
-        dbHelper.close();
-    }
-
-    @Override
     public Long insert(final UserProfile userProfile) {
         final ContentValues values = new ContentValues();
         userTable = new UserTable();
@@ -39,5 +30,58 @@ public class UserDaoImpl implements UserDao {
         values.put(userTable.COLUMN_DESCRIPTION, userProfile.getTitle());
 
         return database.insert(userTable.TABLE_NAME, null, values);
+    }
+
+    @Override
+    public Long onUpdate(UserProfile userProfile) {
+        final ContentValues values = new ContentValues();
+
+        values.put(userTable.COLUMN_NAME, userProfile.getUserName());
+        values.put(userTable.COLUMN_DESCRIPTION, userProfile.getTitle());
+
+        return (long) database.update(userTable.TABLE_NAME, values, String.format("%s = ?",
+                userTable.COLUMN_ID), new String[] {String.valueOf(userProfile.getId())});
+    }
+
+    @SuppressLint("Range")
+    @Override
+    public UserProfile getUserProfile() {
+        final SQLiteDatabase dataBase = dbHelper.getReadableDatabase();
+        final String selection = userTable.COLUMN_NAME + " = ?";
+        final String[] selectionArgs = {"Sanjai"};
+
+        final Cursor cursor = dataBase.query(
+                userTable.TABLE_NAME,
+                null,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null
+        );
+
+
+        if (cursor != null && cursor.moveToFirst()) {
+            final UserProfile userProfile =  new UserProfile();
+
+            userProfile.setId(cursor.getLong(cursor.getColumnIndex(userTable.COLUMN_ID)));
+            userProfile.setUserName(cursor.getString(cursor.getColumnIndex(userTable.COLUMN_NAME)));
+            userProfile.setTitle(cursor.getString(cursor.getColumnIndex(userTable.COLUMN_DESCRIPTION)));
+            cursor.close();
+
+            return userProfile;
+        }
+
+        return null;
+    }
+
+    @Override
+    public void open() {
+        database = dbHelper.getWritableDatabase();
+    }
+
+    @Override
+    public void close() {
+        dbHelper.close();
     }
 }

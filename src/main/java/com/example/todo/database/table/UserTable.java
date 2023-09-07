@@ -3,7 +3,7 @@ package com.example.todo.database.table;
 public class UserTable {
 
     public final String TABLE_NAME = "USERS";
-    public final String COLUMN_ID = "ID";
+    public String COLUMN_ID = "ID";
     public final String COLUMN_NAME = "NAME";
     public final String COLUMN_DESCRIPTION = "DESCRIPTION";
 

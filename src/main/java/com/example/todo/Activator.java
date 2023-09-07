@@ -38,9 +38,7 @@ public class Activator extends AppCompatActivity implements ActivatorService{
         final ImageButton menuButton = findViewById(R.id.menuButton);
         activatorController = new ActivatorController(this, this);
 
-        menuButton.setOnClickListener(view -> {
-            activatorController.onClickMenu(selectedList);
-        });
+        menuButton.setOnClickListener(view -> activatorController.onClickMenu(selectedList));
     }
 
     @Override

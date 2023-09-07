@@ -8,10 +8,16 @@ public class Todo {
     private String label;
     private boolean isChecked;
     private Long parentId;
-    private String status;
+    private Status status;
+    private Long order;
 
     public Todo(final String label) {
         this.label = label;
+    }
+
+    public enum Status {
+        COMPLETED,
+        NOT_COMPLETED
     }
 
     public Long getId() {
@@ -46,12 +52,20 @@ public class Todo {
         this.parentId = parentId;
     }
 
-    public String getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(final String status) {
+    public void setStatus(final Status status) {
         this.status = status;
+    }
+
+    public Long getOrder() {
+        return order;
+    }
+
+    public void setOrder(final Long order) {
+        this.order = order;
     }
 
     @NonNull

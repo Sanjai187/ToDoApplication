@@ -6,8 +6,6 @@ public interface NavigationService {
 
     void goToListPage(final Project project);
 
-    void removeList(final Project project);
-
     void addProjectList();
 
     void toggleEditTextVisibility();

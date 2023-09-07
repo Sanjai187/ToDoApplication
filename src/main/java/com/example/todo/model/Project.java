@@ -9,10 +9,6 @@ public class Project {
     private Long userId;
     private Long order;
 
-    public Project(final String label) {
-        this.label = label;
-    }
-
     public Long getId() {
         return id;
     }
