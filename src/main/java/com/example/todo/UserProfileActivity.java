@@ -19,6 +19,7 @@ public class UserProfileActivity extends AppCompatActivity {
     private EditText userName;
     private TextView profileIcon;
     private UserDao userDao;
+    private UserProfile userProfile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,9 +32,19 @@ public class UserProfileActivity extends AppCompatActivity {
         userTitle = findViewById(R.id.editTitle);
         userName = findViewById(R.id.editUserName);
         profileIcon = findViewById(R.id.userProfile);
-        final UserProfile userProfile = new UserProfile();
         userDao = new UserDaoImpl(this);
-
+//        userProfile = userDao.getUserProfile();
+//
+//        if (null != userProfile) {
+//            userName.setText(userProfile.getUserName());
+//            userTitle.setText(userProfile.getTitle());
+//            profileIcon.setText(userProfile.getProfileIcon());
+//        } else {
+            userProfile = new UserProfile();
+//
+//            userProfile.setUserName(getIntent().getStringExtra(getString(R.string.user)));
+//            userProfile.setTitle(getIntent().getStringExtra(getString(R.string.user_title)));
+//        }
         userProfile.setUserName(getIntent().getStringExtra(getString(R.string.user)));
         userProfile.setTitle(getIntent().getStringExtra(getString(R.string.user_title)));
         userName.setText(userProfile.getUserName());
@@ -48,11 +59,11 @@ public class UserProfileActivity extends AppCompatActivity {
             userProfile.setTitle(userTitle.getText().toString());
             profileIcon.setText(userProfile.getProfileIcon());
             final Intent intent = new Intent();
-            final Long userId = userDao.insert(userProfile);
+            final long userId = null != userProfile.getId() ? userDao.onUpdate(userProfile) : userDao.insert(userProfile);
 
+            userProfile.setId(userId);
             intent.putExtra(getString(R.string.user), userProfile.getUserName());
             intent.putExtra(getString(R.string.user_title), userProfile.getTitle());
-            intent.putExtra(getString(R.string.user_id), userId);
             setResult(RESULT_OK, intent);
             finish();
         });

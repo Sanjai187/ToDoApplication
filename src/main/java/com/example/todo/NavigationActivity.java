@@ -1,28 +1,37 @@
 package com.example.todo;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.todo.controller.NavigationController;
 import com.example.todo.dao.ProjectDao;
+import com.example.todo.dao.UserDao;
 import com.example.todo.dao.impl.ProjectDaoImpl;
+import com.example.todo.dao.impl.UserDaoImpl;
 import com.example.todo.model.Project;
 import com.example.todo.model.ProjectList;
 import com.example.todo.model.UserProfile;
+import com.example.todo.projectadapter.DragItemHelper;
+import com.example.todo.projectadapter.ProjectAdapter;
 import com.example.todo.service.NavigationService;
+
+import java.util.List;
 
 public class NavigationActivity extends AppCompatActivity implements NavigationService {
 
-    private ArrayAdapter<Project> arrayAdapter;
+    private List<com.example.todo.model.Project> projects;
+    private ProjectAdapter projectAdapter;
     private NavigationController navigationController;
     private static Long id = 0L;
     private static final int REQUEST_CODE = 1;
@@ -34,16 +43,18 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
     private EditText editText;
     private ProjectList projectList;
     private ProjectDao projectDao;
+    private UserDao userDao;
+    private UserProfile userProfile;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
 
-        final String selectedList = getIntent().getStringExtra(getString(R.string.navigation_view));
+        getIntent().getStringExtra(getString(R.string.navigation_view));
         final ImageView editButton = findViewById(R.id.editIcon);
+        final ImageView backButton = findViewById(R.id.backToMenu);
         final Button addList = findViewById(R.id.addlist);
-        final ListView listView = findViewById(R.id.nameListView);
         editText = findViewById(R.id.projectList);
         addButton = findViewById(R.id.addProject);
         projectList = new ProjectList();
@@ -52,10 +63,12 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
         userTitle = findViewById(R.id.userTitle);
         navigationController = new NavigationController(this, this, projectList);
         projectDao = new ProjectDaoImpl(this);
-        arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, projectList.getAllList());
+        userDao = new UserDaoImpl(this);
+        projects = projectList.getAllList();
 
-        listView.setAdapter(arrayAdapter);
-        arrayAdapter.notifyDataSetChanged();
+        //loadUserFromDB();
+        initRecyclerView();
+        backButton.setOnClickListener(view -> onBackPressed());
         addList.setOnClickListener(view -> navigationController.onClickTextVisibility());
         addButton.setOnClickListener(view -> navigationController.onAddProject());
         editButton.setOnClickListener(view -> {
@@ -65,60 +78,56 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
             intent.putExtra(getString(R.string.user_title), userTitle.getText().toString());
             startActivityIfNeeded(intent, REQUEST_CODE);
         });
-        listView.setOnItemClickListener((adapterView, view, i, l) -> navigationController.onListItemClicked(projectList.getAllList().get(i)));
-        listView.setOnItemLongClickListener((adapterView, view, i, l) -> {
-            navigationController.onListItemLongClicked(projectList.getAllList().get(i));
-            return true;
-        });
     }
 
-    /**
-     * <p>
-     * Removes a project from the project list
-     * </p>
-     *
-     * @param project The position of the project to be removed
-     */
-    public void removeList(final Project project) {
-        arrayAdapter.remove(project);
-        arrayAdapter.notifyDataSetChanged();
+    private void initRecyclerView() {
+        final RecyclerView recyclerView = findViewById(R.id.nameListView);
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        projectAdapter = new ProjectAdapter(projects, projectDao);
+        final ItemTouchHelper.Callback callback = new DragItemHelper(projectAdapter);
+        final ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+
+        recyclerView.setAdapter(projectAdapter);
+        touchHelper.attachToRecyclerView(recyclerView);
+        loadProjectsFromDB();
+        projectAdapter.setOnItemClickListener(position -> navigationController.onListItemClicked(projectList.getAllList().get(position)));
+    }
+
+    private void loadUserFromDB() {
+        userProfile = userDao.getUserProfile();
+
+        if (null != userProfile) {
+            userName.setText(userProfile.getUserName());
+            userTitle.setText(userProfile.getTitle());
+            profileIcon.setText(userProfile.getProfileIcon());
+            userId = userProfile.getId();
+        }
     }
 
     public void goToListPage(final Project project) {
-        final Intent intent = new Intent(NavigationActivity.this, TodoActivity.class);
+        final Intent intent = new Intent(NavigationActivity.this, TodoListActivity.class);
 
         intent.putExtra(getString(R.string.project_id), project.getId());
         intent.putExtra(getString(R.string.project_name), project.getLabel());
         startActivity(intent);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        projectDao.open();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        projectDao.close();
-    }
-
+    @SuppressLint("NotifyDataSetChanged")
     @Override
     public void addProjectList() {
         final String text = editText.getText().toString().trim();
 
         if (!text.isEmpty()) {
-            final Project project = new Project(text);
+            final com.example.todo.model.Project project = new com.example.todo.model.Project();
 
-            project.setId(id);
+            project.setId(++id);
             project.setLabel(text);
             project.setUserId(userId);
-            project.setOrder(id);
+            project.setOrder((long) (projectAdapter.getItemCount() + 1));
             projectList.add(project);
             projectDao.insert(project);
-
-            arrayAdapter.notifyDataSetChanged();
+            projectAdapter.notifyDataSetChanged();
             editText.getText().clear();
         }
     }
@@ -143,5 +152,24 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
             userTitle.setText(userProfile.getTitle());
             profileIcon.setText(userProfile.getProfileIcon());
         }
+    }
+
+    private void loadProjectsFromDB() {
+        projects = projectDao.getAllProjects();
+
+        projectAdapter.clearProjects();
+        projectAdapter.addProjects(projects);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        projectDao.open();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        projectDao.close();
     }
 }

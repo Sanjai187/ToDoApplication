@@ -1,43 +1,37 @@
 package com.example.todo;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.todo.controller.TodoController;
 import com.example.todo.dao.ItemDao;
 import com.example.todo.dao.impl.ItemDaoImpl;
-import com.example.todo.model.Todo;
 import com.example.todo.model.TodoList;
 import com.example.todo.service.TodoService;
+import com.example.todo.todoadapter.ItemTouchHelperCallBack;
+import com.example.todo.todoadapter.OnItemClickListener;
 import com.example.todo.todoadapter.TodoAdapter;
 
 import java.util.List;
 
-/**
- * <p>
- * This activity displays a list of todo items for a specific project
- * </p>
- *
- * @author sanjai
- * @version 1.0
- */
-public class TodoActivity extends AppCompatActivity implements TodoService{
+public class TodoListActivity extends AppCompatActivity implements TodoService{
 
+    private RecyclerView recyclerView;
+    private TodoAdapter todoAdapter;
     private TodoController todoController;
     private TodoList todoList;
     private EditText editText;
@@ -47,23 +41,21 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
     private ImageView addList;
     private ImageView previous;
     private ImageView next;
-    private TableLayout layout;
     private Spinner filterSpinner;
     private String selectedList;
     private Long projectId;
     private Long id = 0L;
-    private List<Todo> todoItems;
+    private List<com.example.todo.model.Todo> todoItems;
     private int currentPage = 1;
     private TextView pageNumber;
     private int pageSize = 5;
     private ItemDao itemDao;
-    private TodoAdapter todoAdapter;
 
     @Override
-    protected void onCreate(final Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_todo);
-        
+        setContentView(R.layout.activity_todo_list);
+
         initializeData();
         initializeViews();
         initializeListeners();
@@ -83,13 +75,14 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
     }
 
     private void initializeViews() {
-      //  todoController = new TodoController(this, this);
+        todoController = new TodoController(this, this);
         itemDao = new ItemDaoImpl(this);
+        todoItems = todoList.getAllList();
         backButton = findViewById(R.id.backButton1);
         search = findViewById(R.id.search);
         addList = findViewById(R.id.addButton);
         addButton = findViewById(R.id.button);
-        layout = findViewById(R.id.tableLayout);
+        recyclerView = findViewById(R.id.recyclerView);
         editText = findViewById(R.id.editText);
         filterSpinner = findViewById(R.id.filter);
         pageNumber = findViewById(R.id.pageCount);
@@ -105,12 +98,50 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
         previous = findViewById(R.id.prev_page);
         next = findViewById(R.id.next_page);
 
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        todoAdapter = new TodoAdapter(todoItems);
+
+        recyclerView.setAdapter(todoAdapter);
+        final ItemTouchHelper.Callback callback = new ItemTouchHelperCallBack(todoAdapter);
+        final ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+
+        touchHelper.attachToRecyclerView(recyclerView);
         backButton.setOnClickListener(view -> onBackPressed());
         addButton.setOnClickListener(view -> todoController.onAddItem());
         search.setOnClickListener(view -> todoController.goToSearchActivity());
         addList.setOnClickListener(view -> todoController.onClickAddVisibility());
         next.setOnClickListener(view -> todoController.onClickNextPage());
         previous.setOnClickListener(view -> todoController.onclickPreviousPage());
+        todoAdapter.setOnClickListener(new OnItemClickListener() {
+            @Override
+            public void onCheckBoxClick(final com.example.todo.model.Todo todo) {
+                final int position = todoItems.indexOf(todo);
+
+                if (-1 != position) {
+                    final com.example.todo.model.Todo updatedItem = todoItems.get(position);
+
+                    updatedItem.setStatus(updatedItem.getStatus() == com.example.todo.model.Todo.Status.COMPLETED
+                            ? com.example.todo.model.Todo.Status.NOT_COMPLETED
+                            : com.example.todo.model.Todo.Status.COMPLETED);
+                }
+                itemDao.onUpdate(todo);
+                todoAdapter.notifyItemChanged(position);
+            }
+
+            @Override
+            public void onCloseIconClick(final com.example.todo.model.Todo todo) {
+                final int position = todoItems.indexOf(todo);
+
+                if (-1 != position) {
+                    final com.example.todo.model.Todo removedItem = todoItems.remove(position);
+
+                    todoList.remove(todo.getId());
+                    itemDao.onDelete(removedItem.getId());
+                    todoAdapter.notifyItemRemoved(position);
+                    updatePageNumber();
+                }
+            }
+        });
         loadTodoItemsFromDatabase(projectId);
         todoController.setupFilterSpinner();
     }
@@ -126,7 +157,7 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
         super.onPause();
 
         if (null != todoItems) {
-            for (final Todo todo : todoItems) {
+            for (final com.example.todo.model.Todo todo : todoItems) {
                 itemDao.onUpdate(todo);
             }
         }
@@ -138,20 +169,23 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
      * Add a new item to the todo list
      * </p>
      */
+    @SuppressLint("NotifyDataSetChanged")
     public void onAddItem() {
         final String text = editText.getText().toString().trim();
 
         if (!text.isEmpty()) {
-            final Todo todo = new Todo(text);
+            final com.example.todo.model.Todo todo = new com.example.todo.model.Todo(text);
 
             todo.setParentId(projectId);
             todo.setId(++id);
-            todo.setStatus(Todo.Status.NOT_COMPLETED);
+            todo.setStatus(com.example.todo.model.Todo.Status.NOT_COMPLETED);
             todo.setOrder((long) todoAdapter.getItemCount() + 1);
             todoList.add(todo);
             itemDao.insert(todo);
             todoItems = todoList.getAllList();
-            updateTableLayout();
+
+            todoAdapter.notifyDataSetChanged();
+            updateRecyclerView();
             updatePageNumber();
             editText.getText().clear();
         }
@@ -167,7 +201,7 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
             public void onItemSelected(final AdapterView<?> parent, final View view, final int i, final long id) {
                 pageSize = Integer.parseInt(parent.getItemAtPosition(i).toString());
 
-                updateTableLayout();
+                updateRecyclerView();
                 updatePageNumber();
             }
 
@@ -179,7 +213,7 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
 
     @Override
     public void navigateToSearchActivity() {
-        final Intent intent = new Intent(TodoActivity.this, SearchActivity.class);
+        final Intent intent = new Intent(TodoListActivity.this, SearchActivity.class);
 
         intent.putExtra(getString(R.string.search_view), selectedList);
         startActivity(intent);
@@ -197,7 +231,7 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
     public void navigateToNextPage() {
         if ((currentPage * pageSize) < todoItems.size()) {
             currentPage++;
-            updateTableLayout();
+            updateRecyclerView();
             updatePageNumber();
         }
     }
@@ -206,7 +240,7 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
     public void navigateToPreviousPage() {
         if (currentPage > 1) {
             currentPage--;
-            updateTableLayout();
+            updateRecyclerView();
             updatePageNumber();
         }
     }
@@ -217,63 +251,21 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
         pageNumber.setText(String.format("%d / %d", currentPage, totalPage));
     }
 
-    private void updateTableLayout() {
-        layout.removeAllViews();
-        final int startIndex = (currentPage - 1) * pageSize;
-        final int endIndex = Math.min(startIndex + pageSize, todoItems.size());
+    private void updateRecyclerView() {
+        int startIndex = (currentPage - 1) * pageSize;
+        int endIndex = Math.min(startIndex + pageSize, todoItems.size());
 
-        for (int i = startIndex; i < endIndex; i++) {
-            createTableRow(todoItems.get(i));
-        }
-    }
-
-    private void createTableRow(final Todo todo) {
-        final TableRow tableRow = new TableRow(this);
-        final CheckBox checkBox = new CheckBox(this);
-        final TextView textView = new TextView(this);
-        final ImageView closeIcon = new ImageView(this);
-
-        tableRow.setLayoutParams(new TableLayout.LayoutParams(
-                TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT
-        ));
-
-        checkBox.setChecked(todo.getStatus() == Todo.Status.COMPLETED);
-        final TextView todoView = new TextView(this);
-
-        todoView.setTextColor(todo.getStatus() == Todo.Status.COMPLETED ? Color.RED : Color.BLACK);
-        checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            todo.setChecked();
-            todo.setStatus(isChecked ? Todo.Status.COMPLETED : Todo.Status.NOT_COMPLETED);
-            todoView.setTextColor(todo.getStatus() == Todo.Status.COMPLETED ? Color.GRAY : Color.BLACK);
-        });
-
-        tableRow.addView(checkBox);
-        textView.setText(todo.getLabel());
-        tableRow.addView(textView);
-        closeIcon.setImageResource(R.drawable.close);
-        closeIcon.setOnClickListener(view -> removeItem(tableRow, todo));
-        tableRow.addView(closeIcon);
-        layout.addView(tableRow);
-    }
-
-    private void removeItem(final TableRow row, final Todo todo) {
-        todoList.remove(todo.getId());
-        layout.removeView(row);
-        itemDao.onDelete(todo.getId());
-        final int totalPageCount = (int) Math.ceil((double) todoItems.size() / pageSize);
-
-        if (currentPage > totalPageCount) {
-            currentPage = totalPageCount;
-        }
-        updatePageNumber();
+        List<com.example.todo.model.Todo> pageItems = todoItems.subList(startIndex, endIndex);
+        todoAdapter.updateTodoItems(pageItems);
     }
 
     private void loadTodoItemsFromDatabase(final Long selectedProjectId) {
         todoItems = itemDao.getTodoItems(selectedProjectId);
 
         if (null != todoItems) {
-            updateTableLayout();
-            updatePageNumber();
+            todoAdapter.clearProjects();
+            todoAdapter.addProjects(todoItems);
         }
+        todoAdapter.updateTodoItems(todoItems);
     }
 }

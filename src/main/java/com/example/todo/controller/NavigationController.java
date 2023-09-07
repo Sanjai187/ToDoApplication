@@ -25,10 +25,6 @@ public class NavigationController {
         navigationService.addProjectList();
     }
 
-    public void onListItemLongClicked(final Project project) {
-        projectList.remove(project.getId());
-        navigationService.removeList(project);
-    }
 
     public void onClickTextVisibility() {
         navigationService.toggleEditTextVisibility();

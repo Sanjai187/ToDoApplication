@@ -35,6 +35,8 @@
     <string name="navigation_view">Navigation View</string>
     <string name="edit">Edit</string>
     <string name="search_view">Search View</string>
+    <string name="exist_name">Exist Name</string>
+    <string name="exist_title">Exist Title</string>
     <string-array name="filter_options">
         <item>All</item>
         <item>Completed</item>
