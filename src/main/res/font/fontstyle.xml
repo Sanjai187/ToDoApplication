@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<font-family xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <font
+        android:fontStyle="normal"
+        android:font="@font/akaya_telivigala" />
+    <font
+        android:fontStyle="normal"
+        android:font="@font/akronim"/>
+    <font
+        android:fontStyle="normal"
+        android:font="@font/alegreya"/>
+    <font
+        android:fontStyle="normal"
+        android:font="@font/antic_didone"/>
+    <font
+        android:font="@font/arbutus"
+        android:fontStyle="normal"/>
+</font-family>

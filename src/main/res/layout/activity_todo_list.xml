@@ -10,6 +10,7 @@
         android:orientation="vertical">
 
         <RelativeLayout
+            android:id="@+id/subList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="15dp"
@@ -101,6 +102,7 @@
         </ScrollView>
 
         <RelativeLayout
+            android:id="@+id/pagination"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"

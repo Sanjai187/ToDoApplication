@@ -127,7 +127,7 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
 
         if (null != todoItems) {
             for (final Todo todo : todoItems) {
-                itemDao.onUpdate(todo);
+                itemDao.onUpdateStatus(todo);
             }
         }
         itemDao.close();

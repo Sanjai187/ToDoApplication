@@ -14,12 +14,14 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.example.todo.controller.TodoController;
 import com.example.todo.dao.ItemDao;
 import com.example.todo.dao.impl.ItemDaoImpl;
+import com.example.todo.model.Todo;
 import com.example.todo.model.TodoList;
 import com.example.todo.service.TodoService;
 import com.example.todo.todoadapter.ItemTouchHelperCallBack;
@@ -99,7 +101,7 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
         next = findViewById(R.id.next_page);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        todoAdapter = new TodoAdapter(todoItems);
+        todoAdapter = new TodoAdapter(todoItems, itemDao);
 
         recyclerView.setAdapter(todoAdapter);
         final ItemTouchHelper.Callback callback = new ItemTouchHelperCallBack(todoAdapter);
@@ -112,28 +114,27 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
         addList.setOnClickListener(view -> todoController.onClickAddVisibility());
         next.setOnClickListener(view -> todoController.onClickNextPage());
         previous.setOnClickListener(view -> todoController.onclickPreviousPage());
+        todoController.setupFilterSpinner();
         todoAdapter.setOnClickListener(new OnItemClickListener() {
             @Override
-            public void onCheckBoxClick(final com.example.todo.model.Todo todo) {
+            public void onCheckBoxClick(final Todo todo) {
                 final int position = todoItems.indexOf(todo);
 
                 if (-1 != position) {
-                    final com.example.todo.model.Todo updatedItem = todoItems.get(position);
+                    final Todo updatedItem = todoItems.get(position);
 
-                    updatedItem.setStatus(updatedItem.getStatus() == com.example.todo.model.Todo.Status.COMPLETED
-                            ? com.example.todo.model.Todo.Status.NOT_COMPLETED
-                            : com.example.todo.model.Todo.Status.COMPLETED);
+                    updatedItem.setStatus(updatedItem.getStatus() == Todo.Status.COMPLETED ? Todo.Status.NOT_COMPLETED : Todo.Status.COMPLETED);
                 }
-                itemDao.onUpdate(todo);
+                itemDao.onUpdateStatus(todo);
                 todoAdapter.notifyItemChanged(position);
             }
 
             @Override
-            public void onCloseIconClick(final com.example.todo.model.Todo todo) {
+            public void onCloseIconClick(final Todo todo) {
                 final int position = todoItems.indexOf(todo);
 
                 if (-1 != position) {
-                    final com.example.todo.model.Todo removedItem = todoItems.remove(position);
+                    final Todo removedItem = todoItems.remove(position);
 
                     todoList.remove(todo.getId());
                     itemDao.onDelete(removedItem.getId());
@@ -143,7 +144,9 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
             }
         });
         loadTodoItemsFromDatabase(projectId);
-        todoController.setupFilterSpinner();
+        TypeFaceUtil.applyFontToView(getWindow().getDecorView().findViewById(android.R.id.content));
+        TypeFaceUtil.applyTextSizeToView(getWindow().getDecorView().findViewById(android.R.id.content));
+        applyColorToComponent();
     }
 
     @Override
@@ -157,8 +160,8 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
         super.onPause();
 
         if (null != todoItems) {
-            for (final com.example.todo.model.Todo todo : todoItems) {
-                itemDao.onUpdate(todo);
+            for (final Todo todo : todoItems) {
+                itemDao.onUpdateStatus(todo);
             }
         }
         itemDao.close();
@@ -174,11 +177,11 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
         final String text = editText.getText().toString().trim();
 
         if (!text.isEmpty()) {
-            final com.example.todo.model.Todo todo = new com.example.todo.model.Todo(text);
+            final Todo todo = new Todo(text);
 
             todo.setParentId(projectId);
             todo.setId(++id);
-            todo.setStatus(com.example.todo.model.Todo.Status.NOT_COMPLETED);
+            todo.setStatus(Todo.Status.NOT_COMPLETED);
             todo.setOrder((long) todoAdapter.getItemCount() + 1);
             todoList.add(todo);
             itemDao.insert(todo);
@@ -255,7 +258,7 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
         int startIndex = (currentPage - 1) * pageSize;
         int endIndex = Math.min(startIndex + pageSize, todoItems.size());
 
-        List<com.example.todo.model.Todo> pageItems = todoItems.subList(startIndex, endIndex);
+        List<Todo> pageItems = todoItems.subList(startIndex, endIndex);
         todoAdapter.updateTodoItems(pageItems);
     }
 
@@ -267,5 +270,22 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
             todoAdapter.addProjects(todoItems);
         }
         todoAdapter.updateTodoItems(todoItems);
+    }
+
+    private void applyColorToComponent() {
+        final int defaultColor = TypeFaceUtil.getSelectedDefaultColor();
+        final RelativeLayout layout = findViewById(R.id.subList);
+        final RelativeLayout relativeLayout = findViewById(R.id.pagination);
+
+        if (defaultColor == R.color.green) {
+            layout.setBackgroundColor(getResources().getColor(R.color.green));
+            relativeLayout.setBackgroundColor(getResources().getColor(R.color.green));
+        } else if (defaultColor == R.color.blue) {
+            layout.setBackgroundColor(getResources().getColor(R.color.blue));
+            relativeLayout.setBackgroundColor(getResources().getColor(R.color.blue));
+        } else if (defaultColor == R.color.Violet) {
+            layout.setBackgroundColor(getResources().getColor(R.color.Violet));
+            relativeLayout.setBackgroundColor(getResources().getColor(R.color.Violet));
+        }
     }
 }

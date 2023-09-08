@@ -16,4 +16,8 @@ public class ActivatorController {
     public void onClickMenu(final String selectedList) {
         activatorService.goToNavigation(selectedList);
     }
+
+    public void onClickSetting() {
+        activatorService.navigateToSettings();
+    }
 }

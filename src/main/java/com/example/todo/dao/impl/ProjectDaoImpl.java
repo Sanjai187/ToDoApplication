@@ -9,7 +9,9 @@ import android.database.sqlite.SQLiteDatabase;
 import com.example.todo.dao.ProjectDao;
 import com.example.todo.database.DBHelper;
 import com.example.todo.database.table.ProjectTable;
+import com.example.todo.database.table.UserTable;
 import com.example.todo.model.Project;
+import com.example.todo.model.UserProfile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +20,7 @@ public class ProjectDaoImpl implements ProjectDao {
 
     private SQLiteDatabase database;
     private final DBHelper dbHelper;
+    private final ProjectTable projectTable = new ProjectTable();
 
     public ProjectDaoImpl(final Context context) {
         this.dbHelper = new DBHelper(context);
@@ -26,7 +29,6 @@ public class ProjectDaoImpl implements ProjectDao {
     @Override
     public Long insert(final Project project) {
         final ContentValues values = new ContentValues();
-        final ProjectTable projectTable = new ProjectTable();
 
         values.put(projectTable.COLUMN_NAME, project.getLabel());
         values.put(projectTable.COLUMN_USER_ID, project.getUserId());
@@ -37,15 +39,12 @@ public class ProjectDaoImpl implements ProjectDao {
 
     @Override
     public long onDelete(final Project project) {
-        final ProjectTable projectTable = new ProjectTable();
-
         return database.delete(projectTable.TABLE_NAME,  projectTable.COLUMN_ID + " = ?", new String[]{String.valueOf(project.getId())});
     }
 
     @Override
     public void updateProjectsOrder(final Project project) {
         final ContentValues values = new ContentValues();
-        final ProjectTable projectTable = new ProjectTable();
 
         values.put(projectTable.COLUMN_ORDER, project.getOrder());
         database.update(projectTable.TABLE_NAME, values, String.format("%s = ?", projectTable.COLUMN_ID), new String[]{String.valueOf(project.getId())});
@@ -56,7 +55,6 @@ public class ProjectDaoImpl implements ProjectDao {
     public List<Project> getAllProjects() {
         final SQLiteDatabase sqLiteDB = dbHelper.getReadableDatabase();
         final List<Project> projects = new ArrayList<>();
-        final ProjectTable projectTable = new ProjectTable();
 
         try (final Cursor cursor = sqLiteDB.query(projectTable.TABLE_NAME, null,
                 null, null, null, null,

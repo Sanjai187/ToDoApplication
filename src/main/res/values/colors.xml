@@ -2,4 +2,9 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="Violet">#BCA9F0</color>
+    <color name="blue">#BFE9F6</color>
+    <color name="green">#D0FDA2</color>
+    <color name="default_color">@color/cardview_shadow_start_color</color>
+
 </resources>

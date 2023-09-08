@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -52,7 +53,7 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
     private TodoAdapter todoAdapter;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
 
@@ -97,13 +98,16 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
         searchController.onClickSearchView();
         searchController.onClickFilterSpinner();
         updatePageNumber();
+        TypeFaceUtil.applyFontToView(getWindow().getDecorView().findViewById(android.R.id.content));
+        TypeFaceUtil.applyTextSizeToView(getWindow().getDecorView().findViewById(android.R.id.content));
+        applyColorToComponent();
     }
 
     private void initRecyclerView() {
         final RecyclerView recyclerView = findViewById(R.id.recyclerViewList);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        todoAdapter = new TodoAdapter(todoItems);
+        todoAdapter = new TodoAdapter(todoItems, itemDao);
 
         recyclerView.setAdapter(todoAdapter);
         final ItemTouchHelper.Callback callback = new ItemTouchHelperCallBack(todoAdapter);
@@ -122,7 +126,7 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
                             ? com.example.todo.model.Todo.Status.NOT_COMPLETED
                             : com.example.todo.model.Todo.Status.COMPLETED);
                 }
-                itemDao.onUpdate(todo);
+                itemDao.onUpdateStatus(todo);
                 todoAdapter.notifyItemChanged(position);
             }
 
@@ -329,9 +333,26 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
 
         if (null != todoItems) {
             for (final Todo todo : todoItems) {
-                itemDao.onUpdate(todo);
+                itemDao.onUpdateStatus(todo);
             }
         }
         itemDao.close();
+    }
+
+    private void applyColorToComponent() {
+        final int defaultColor = TypeFaceUtil.getSelectedDefaultColor();
+        final RelativeLayout layout = findViewById(R.id.searchView);
+        final RelativeLayout relativeLayout = findViewById(R.id.pagination);
+
+        if (defaultColor == R.color.green) {
+            layout.setBackgroundColor(getResources().getColor(R.color.green));
+            relativeLayout.setBackgroundColor(getResources().getColor(R.color.green));
+        } else if (defaultColor == R.color.blue) {
+            layout.setBackgroundColor(getResources().getColor(R.color.blue));
+            relativeLayout.setBackgroundColor(getResources().getColor(R.color.blue));
+        } else if (defaultColor == R.color.Violet) {
+            layout.setBackgroundColor(getResources().getColor(R.color.Violet));
+            relativeLayout.setBackgroundColor(getResources().getColor(R.color.Violet));
+        }
     }
 }
