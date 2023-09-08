@@ -2,6 +2,7 @@ package com.example.todo.todoadapter;
 
 import android.annotation.SuppressLint;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todo.R;
+import com.example.todo.TypeFaceUtil;
 import com.example.todo.dao.ItemDao;
 import com.example.todo.model.Todo;
 
@@ -26,8 +28,9 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
     private ItemDao itemDao;
     private OnItemClickListener listener;
 
-    public TodoAdapter(final List<Todo> todo) {
+    public TodoAdapter(final List<Todo> todo, final ItemDao itemDao) {
         this.todo = todo;
+        this.itemDao = itemDao;
     }
 
     @NonNull
@@ -41,7 +44,15 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
 
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, final int position) {
-        final com.example.todo.model.Todo todoItem = todo.get(position);
+        final Todo todoItem = todo.get(position);
+        final Typeface typeface = TypeFaceUtil.getSelectedTypeFace();
+        final float fontSize = TypeFaceUtil.getSelectedFontSize();
+
+        if (null != typeface) {
+            holder.todoTextView.setTypeface(typeface);
+        } else if (0 != fontSize){
+            holder.todoTextView.setTextSize(fontSize);
+        }
 
         holder.bind(todoItem, listener);
     }
@@ -81,16 +92,17 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
             todoRemoveButton = itemView.findViewById(R.id.todoRemoveButton);
         }
 
-        public void bind(final com.example.todo.model.Todo todoItem, final OnItemClickListener listener) {
-            checkBox.setChecked(todoItem.getStatus() == com.example.todo.model.Todo.Status.COMPLETED);
+        public void bind(final Todo todoItem, final OnItemClickListener listener) {
+            checkBox.setChecked(todoItem.getStatus() == Todo.Status.COMPLETED);
             todoTextView.setText(todoItem.getLabel());
-            todoTextView.setTextColor(todoItem.getStatus() == com.example.todo.model.Todo.Status.COMPLETED ? Color.RED : Color.BLACK);
+            todoTextView.setTextColor(todoItem.getStatus() == Todo.Status.COMPLETED ? Color.RED : Color.BLACK);
             checkBox.setOnClickListener(v -> listener.onCheckBoxClick(todoItem));
             todoRemoveButton.setOnClickListener(v -> listener.onCloseIconClick(todoItem));
         }
     }
 
-    public void updateTodoItems(List<com.example.todo.model.Todo> updatedItems) {
+    @SuppressLint("NotifyDataSetChanged")
+    public void updateTodoItems(List<Todo> updatedItems) {
         this.todo = updatedItems;
         notifyDataSetChanged();
     }
@@ -102,7 +114,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    public void addProjects(final List<com.example.todo.model.Todo> newProjects) {
+    public void addProjects(final List<Todo> newProjects) {
         this.todo.addAll(newProjects);
         notifyDataSetChanged();
     }

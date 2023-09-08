@@ -15,7 +15,7 @@ public class UserDaoImpl implements UserDao {
 
     private SQLiteDatabase database;
     private final DBHelper dbHelper;
-    private UserTable userTable;
+    private final UserTable userTable = new UserTable();
 
     public UserDaoImpl(final Context context) {
         this.dbHelper = new DBHelper(context);
@@ -24,7 +24,6 @@ public class UserDaoImpl implements UserDao {
     @Override
     public Long insert(final UserProfile userProfile) {
         final ContentValues values = new ContentValues();
-        userTable = new UserTable();
 
         values.put(userTable.COLUMN_NAME, userProfile.getUserName());
         values.put(userTable.COLUMN_DESCRIPTION, userProfile.getTitle());
@@ -47,19 +46,16 @@ public class UserDaoImpl implements UserDao {
     @Override
     public UserProfile getUserProfile() {
         final SQLiteDatabase dataBase = dbHelper.getReadableDatabase();
-        final String selection = userTable.COLUMN_NAME + " = ?";
-        final String[] selectionArgs = {"Sanjai"};
 
         final Cursor cursor = dataBase.query(
                 userTable.TABLE_NAME,
                 null,
-                selection,
-                selectionArgs,
+                null,
+                null,
                 null,
                 null,
                 null
         );
-
 
         if (cursor != null && cursor.moveToFirst()) {
             final UserProfile userProfile =  new UserProfile();

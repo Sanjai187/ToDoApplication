@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.example.todo.controller.NavigationController;
@@ -66,7 +67,7 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
         userDao = new UserDaoImpl(this);
         projects = projectList.getAllList();
 
-        //loadUserFromDB();
+        loadUserFromDB();
         initRecyclerView();
         backButton.setOnClickListener(view -> onBackPressed());
         addList.setOnClickListener(view -> navigationController.onClickTextVisibility());
@@ -78,6 +79,9 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
             intent.putExtra(getString(R.string.user_title), userTitle.getText().toString());
             startActivityIfNeeded(intent, REQUEST_CODE);
         });
+        TypeFaceUtil.applyFontToView(getWindow().getDecorView().findViewById(android.R.id.content));
+        TypeFaceUtil.applyTextSizeToView(getWindow().getDecorView().findViewById(android.R.id.content));
+        applyColorToComponent();
     }
 
     private void initRecyclerView() {
@@ -119,11 +123,11 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
         final String text = editText.getText().toString().trim();
 
         if (!text.isEmpty()) {
-            final com.example.todo.model.Project project = new com.example.todo.model.Project();
+            final Project project = new Project();
 
             project.setId(++id);
             project.setLabel(text);
-            project.setUserId(userId);
+            project.setUserId(1L);
             project.setOrder((long) (projectAdapter.getItemCount() + 1));
             projectList.add(project);
             projectDao.insert(project);
@@ -171,5 +175,18 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
     protected void onPause() {
         super.onPause();
         projectDao.close();
+    }
+
+    private void applyColorToComponent() {
+        final int defaultColor = TypeFaceUtil.getSelectedDefaultColor();
+        final RelativeLayout relativeLayout = findViewById(R.id.profileView);
+
+        if (defaultColor == R.color.green) {
+            relativeLayout.setBackgroundColor(getResources().getColor(R.color.green));
+        } else if (defaultColor == R.color.blue) {
+            relativeLayout.setBackgroundColor(getResources().getColor(R.color.blue));
+        } else if (defaultColor == R.color.Violet) {
+            relativeLayout.setBackgroundColor(getResources().getColor(R.color.Violet));
+        }
     }
 }

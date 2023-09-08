@@ -1,6 +1,7 @@
 package com.example.todo.projectadapter;
 
 import android.annotation.SuppressLint;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todo.R;
+import com.example.todo.TypeFaceUtil;
 import com.example.todo.dao.ProjectDao;
 import com.example.todo.model.Project;
 
@@ -19,7 +21,7 @@ import java.util.List;
 
 public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHolder> implements ItemTouchHelper {
 
-    private final List<com.example.todo.model.Project> projects;
+    private final List<Project> projects;
     private final ProjectDao projectDao;
     private OnItemClickListener onItemClickListener;
 
@@ -27,7 +29,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
         void onItemClick(final int position);
     }
 
-    public ProjectAdapter(final List<com.example.todo.model.Project> projects, final ProjectDao projectDao) {
+    public ProjectAdapter(final List<Project> projects, final ProjectDao projectDao) {
         this.projects = projects;
         this.projectDao = projectDao;
     }
@@ -47,7 +49,15 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(@NonNull ProjectAdapter.ViewHolder holder, int position) {
-        final com.example.todo.model.Project project = projects.get(position);
+        final Project project = projects.get(position);
+        final Typeface typeface = TypeFaceUtil.getSelectedTypeFace();
+        final float fontSize = TypeFaceUtil.getSelectedFontSize();
+
+        if (null != typeface) {
+            holder.projectNameTextView.setTypeface(typeface);
+        } else if (0 != fontSize) {
+            holder.projectNameTextView.setTextSize(fontSize);
+        }
 
         holder.projectNameTextView.setText(project.getLabel());
         holder.itemView.setOnClickListener(view -> {
@@ -64,7 +74,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    public void addProjects(final List<com.example.todo.model.Project> newProjects) {
+    public void addProjects(final List<Project> newProjects) {
         projects.addAll(newProjects);
         notifyDataSetChanged();
     }
@@ -100,7 +110,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
                 final int position = getAdapterPosition();
 
                 if (position != RecyclerView.NO_POSITION) {
-                    final com.example.todo.model.Project project = projects.get(position);
+                    final Project project = projects.get(position);
 
                     if (projects.indexOf(project) != -1) {
                         projects.remove(position);

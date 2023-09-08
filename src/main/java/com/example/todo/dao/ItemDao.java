@@ -10,7 +10,7 @@ public interface ItemDao {
 
     long onDelete(final Long id);
 
-    void onUpdate(final Todo todo);
+    void onUpdateStatus(final Todo todo);
 
     List<Todo> getTodoItems(final Long projectId);
 

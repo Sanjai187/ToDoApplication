@@ -37,6 +37,10 @@
     <string name="search_view">Search View</string>
     <string name="exist_name">Exist Name</string>
     <string name="exist_title">Exist Title</string>
+    <string name="settingview">SettingView</string>
+    <string name="font_family">Font Family</string>
+    <string name="font_size">Font Size</string>
+    <string name="default_color">Default Colour</string>
     <string-array name="filter_options">
         <item>All</item>
         <item>Completed</item>
@@ -50,5 +54,23 @@
         <item>20</item>
         <item>25</item>
         <item>30</item>
+    </string-array>
+    <string-array name="font_size">
+        <item>Small</item>
+        <item>Medium</item>
+        <item>Large</item>
+    </string-array>
+    <string-array name="font_style">
+        <item>akaya</item>
+        <item>akronim</item>
+        <item>alegreya</item>
+        <item>antic</item>
+        <item>arbutus</item>
+    </string-array>
+    <string-array name="font_colour">
+        <item>gray</item>
+        <item>violet</item>
+        <item>blue</item>
+        <item>green</item>
     </string-array>
 </resources>
