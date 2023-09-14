@@ -41,6 +41,19 @@
     <string name="font_family">Font Family</string>
     <string name="font_size">Font Size</string>
     <string name="default_color">Default Colour</string>
+    <string name="logo">Logo</string>
+    <string name="greetings">Greetings</string>
+    <string name="creating_your_account">Creating Your Account!</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="create_account">Create Account</string>
+    <string name="already_have_an_account">Already have an account</string>
+    <string name="sign_in">Sign in</string>
+    <string name="remember_me">Remember me</string>
+    <string name="don_t_have_user_account">Don\'t have user account?</string>
+    <string name="sign_up">Sign up</string>
+    <string name="forgot_password">Forgot Password</string>
     <string-array name="filter_options">
         <item>All</item>
         <item>Completed</item>
@@ -73,4 +86,28 @@
         <item>blue</item>
         <item>green</item>
     </string-array>
+    <string name="title_activity_forget">ForgetActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="forget_password">Forget Password?</string>
+    <string name="new_password">New Password</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="user_email">User Email</string>
+    <string name="invalid_details">Invalid Details</string>
+    <string name="field_fill">Field Fill</string>
+    <string name="sign_in_successfully">Sign In Successfully</string>
+    <string name="fail">Fail</string>
+    <string name="account">Account Created Successfully</string>
+    <string name="password_mismatch">Password Mismatch</string>
+    <string name="fields_fill">Fields fill</string>
+    <string name="password_update">Password Update</string>
+    <string name="invalid_email">Invalid Email</string>
+    <string name="user_profile">User Profile</string>
+    <string name="format">Format</string>
+    <string name="md5">MD5</string>
+    <string name="hint">Hint</string>
+    <string name="request_failed_s">Request Failed : %s</string>
+    <string name="reset_successfully">Reset successfully</string>
+    <string name="new_hint">New Hint</string>
+    <string name="old_hint">Old Hint</string>
 </resources>

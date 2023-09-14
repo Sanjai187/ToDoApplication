@@ -1,6 +1,7 @@
 package com.example.todo;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
 import android.graphics.Typeface;
@@ -10,6 +11,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 
 public class SettingActivity extends AppCompatActivity {
@@ -21,7 +23,6 @@ public class SettingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
 
-        getIntent().getStringExtra(getString(R.string.settingview));
         final ImageView backButton = findViewById(R.id.backMenu);
         final Spinner fontStyle = findViewById(R.id.fontStyle);
         final Spinner fontSize = findViewById(R.id.fontSize);
@@ -85,6 +86,7 @@ public class SettingActivity extends AppCompatActivity {
                 final int selectedColor = getColorId(position);
 
                 TypeFaceUtil.setSelectedDefaultColor(selectedColor);
+                //applyColorToComponents(selectedColor);
             }
 
             @Override
@@ -145,5 +147,12 @@ public class SettingActivity extends AppCompatActivity {
         } else if (defaultColor == R.color.Violet) {
             layout.setBackgroundColor(getResources().getColor(R.color.Violet));
         }
+    }
+
+    public void applyColorToComponents(final int colorId) {
+        final int selectedColor = ContextCompat.getColor(this, colorId);
+        final RelativeLayout relativeLayout = findViewById(R.id.relativeLayout);
+
+        relativeLayout.setBackgroundColor(selectedColor);
     }
 }

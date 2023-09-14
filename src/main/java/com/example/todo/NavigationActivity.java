@@ -45,14 +45,13 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
     private ProjectList projectList;
     private ProjectDao projectDao;
     private UserDao userDao;
-    private UserProfile userProfile;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
 
-        getIntent().getStringExtra(getString(R.string.navigation_view));
         final ImageView editButton = findViewById(R.id.editIcon);
         final ImageView backButton = findViewById(R.id.backToMenu);
         final Button addList = findViewById(R.id.addlist);
@@ -99,7 +98,7 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
     }
 
     private void loadUserFromDB() {
-        userProfile = userDao.getUserProfile();
+        final UserProfile userProfile = userDao.getUserProfile();
 
         if (null != userProfile) {
             userName.setText(userProfile.getUserName());
@@ -127,7 +126,7 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
 
             project.setId(++id);
             project.setLabel(text);
-            project.setUserId(1L);
+            project.setUserId(userId);
             project.setOrder((long) (projectAdapter.getItemCount() + 1));
             projectList.add(project);
             projectDao.insert(project);

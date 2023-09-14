@@ -67,7 +67,8 @@ public class ItemDaoImpl implements ItemDao {
         final List<Todo> todoList = new ArrayList<>();
 
         try (final Cursor cursor = sqLiteDB.query(itemTable.TABLE_NAME, null,
-                null, null, null, null,
+                String.format("%s = ?", itemTable.COLUMN_PROJECT_ID),
+                new String[]{String.valueOf(projectId)}, null, null,
                 itemTable.COLUMN_ORDER))  {
 
             if (null != cursor && cursor.moveToFirst()) {
