@@ -10,6 +10,8 @@ public interface UserDao {
 
     Long onUpdate(final UserProfile userProfile);
 
+    UserProfile getUserDetails(final String email);
+
     void open();
 
     void close();

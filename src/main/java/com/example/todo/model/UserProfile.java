@@ -5,6 +5,7 @@ public class UserProfile {
     private Long id;
     private String userName;
     private String title;
+    private String email;
 
     public Long getId() {
         return id;
@@ -28,6 +29,14 @@ public class UserProfile {
 
     public void setTitle(final String title) {
         this.title = title;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(final String email) {
+        this.email = email;
     }
 
     public StringBuilder getProfileIcon() {

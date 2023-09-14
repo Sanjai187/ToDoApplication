@@ -52,7 +52,6 @@ public class Activator extends AppCompatActivity implements ActivatorService{
     public void goToNavigation(final String selectedList) {
         final Intent intent = new Intent(Activator.this, NavigationActivity.class);
 
-        intent.putExtra(getString(R.string.navigation_view), selectedList);
         startActivity(intent);
     }
 
@@ -60,7 +59,6 @@ public class Activator extends AppCompatActivity implements ActivatorService{
     public void navigateToSettings() {
         final Intent intent = new Intent(Activator.this, SettingActivity.class);
 
-        intent.putExtra(getString(R.string.settingview), selectedList);
         startActivity(intent);
     }
 

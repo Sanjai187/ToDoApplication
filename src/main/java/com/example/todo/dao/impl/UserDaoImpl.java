@@ -26,13 +26,14 @@ public class UserDaoImpl implements UserDao {
         final ContentValues values = new ContentValues();
 
         values.put(userTable.COLUMN_NAME, userProfile.getUserName());
+        values.put(userTable.COLUMN_EMAIL, userProfile.getEmail());
         values.put(userTable.COLUMN_DESCRIPTION, userProfile.getTitle());
 
         return database.insert(userTable.TABLE_NAME, null, values);
     }
 
     @Override
-    public Long onUpdate(UserProfile userProfile) {
+    public Long onUpdate(final UserProfile userProfile) {
         final ContentValues values = new ContentValues();
 
         values.put(userTable.COLUMN_NAME, userProfile.getUserName());
@@ -69,6 +70,30 @@ public class UserDaoImpl implements UserDao {
         }
 
         return null;
+    }
+
+    @SuppressLint({"Recycle", "Range"})
+    @Override
+    public UserProfile getUserDetails(final String email) {
+        final SQLiteDatabase sqLiteDatabase = dbHelper.getReadableDatabase();
+        UserProfile userProfile = null;
+        final Cursor cursor = sqLiteDatabase.query(userTable.TABLE_NAME,
+                new String[]{userTable.COLUMN_ID, userTable.COLUMN_NAME, userTable.COLUMN_DESCRIPTION},
+                String.format("%s = ?", userTable.COLUMN_EMAIL), new String[]{email},
+                null, null, null);
+
+        if (null != cursor && cursor.moveToFirst()) {
+            userProfile = new UserProfile();
+
+            userProfile.setId(cursor.getLong(cursor.getColumnIndex(userTable.COLUMN_ID)));
+            userProfile.setUserName(cursor.getString(cursor.getColumnIndex(userTable.COLUMN_NAME)));
+            userProfile.setTitle(cursor.getString(cursor.getColumnIndex(
+                    userTable.COLUMN_DESCRIPTION)));
+            userProfile.setEmail(email);
+            cursor.close();
+        }
+
+        return userProfile;
     }
 
     @Override

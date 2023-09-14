@@ -17,8 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="15dp"
-            android:background="@color/cardview_shadow_start_color"
-            tools:ignore="UselessParent">
+            android:background="@color/cardview_shadow_start_color">
 
             <ImageButton
                 android:id="@+id/menuButton"

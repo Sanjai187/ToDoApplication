@@ -1,5 +1,6 @@
 package com.example.todo;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -21,7 +22,9 @@ public class UserProfileActivity extends AppCompatActivity {
     private TextView profileIcon;
     private UserDao userDao;
     private UserProfile userProfile;
+    private EditText userEmail;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,32 +33,28 @@ public class UserProfileActivity extends AppCompatActivity {
         final ImageButton backButton = findViewById(R.id.backMenu);
         final Button cancelButton = findViewById(R.id.cancelButton);
         final Button saveButton = findViewById(R.id.saveButton);
+        userEmail = findViewById(R.id.signUpEmail);
         userTitle = findViewById(R.id.editTitle);
         userName = findViewById(R.id.editUserName);
         profileIcon = findViewById(R.id.userProfile);
         userDao = new UserDaoImpl(this);
-        userProfile = userDao.getUserProfile();
+        userProfile = (UserProfile) getIntent().getSerializableExtra(getString(R.string.user_profile));
 
         if (null != userProfile) {
             userName.setText(userProfile.getUserName());
             userTitle.setText(userProfile.getTitle());
             profileIcon.setText(userProfile.getProfileIcon());
-        } else {
-            userProfile = new UserProfile();
-
-            userProfile.setUserName(getIntent().getStringExtra(getString(R.string.user)));
-            userProfile.setTitle(getIntent().getStringExtra(getString(R.string.user_title)));
         }
         backButton.setOnClickListener(view -> onBackPressed());
         cancelButton.setOnClickListener(view -> onBackPressed());
         saveButton.setOnClickListener(view -> {
             userProfile.setUserName(userName.getText().toString());
+            userProfile.setEmail(String.valueOf(userEmail));
             userProfile.setTitle(userTitle.getText().toString());
             profileIcon.setText(userProfile.getProfileIcon());
             final Intent intent = new Intent();
-            final long userId = null != userProfile.getId() ? userDao.onUpdate(userProfile) : userDao.insert(userProfile);
+            userDao.onUpdate(userProfile);
 
-            userProfile.setId(userId);
             intent.putExtra(getString(R.string.user), userProfile.getUserName());
             intent.putExtra(getString(R.string.user_title), userProfile.getTitle());
             setResult(RESULT_OK, intent);
