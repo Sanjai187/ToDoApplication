@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.view.View;
@@ -18,9 +19,6 @@ import com.example.todo.dao.CredentialDao;
 import com.example.todo.dao.impl.CredentialDaoImpl;
 import com.example.todo.model.Credential;
 import com.google.android.material.snackbar.Snackbar;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 public class SignInActivity extends AppCompatActivity {
 
@@ -59,10 +57,9 @@ public class SignInActivity extends AppCompatActivity {
         passwordVisibilityToggle.setOnClickListener(view -> togglePasswordActivity());
         signIn.setOnClickListener(view -> {
             final Credential credential = new Credential();
-            final String hashPassword = hashPassword(userPassword.getText().toString().trim());
 
             credential.setEmail(userEmail.getText().toString().trim());
-            credential.setPassword(hashPassword);
+            credential.setPassword(userPassword.getText().toString().trim());
 
             if (TextUtils.isEmpty(credential.getEmail())
                     || TextUtils.isEmpty(credential.getPassword())) {
@@ -74,6 +71,13 @@ public class SignInActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(final String response) {
                         showSnackBar(getString(R.string.sign_in_successfully));
+                        new Handler().postDelayed(() -> {
+                            final Intent intent = new Intent(SignInActivity.this,
+                                    Activator.class);
+
+//                                intent.putExtra(getString(R.string.user_email), credential.getEmail());
+                            startActivity(intent);
+                        }, 500);
                     }
 
                     @Override
@@ -81,55 +85,18 @@ public class SignInActivity extends AppCompatActivity {
                         showSnackBar(String.format(getString(R.string.request_failed_s), errorMessage));
                     }
                 });
-//                final boolean isAuthenticated = credentialDao.checkCredentials(loginDetail);
-//
-//                if (isAuthenticated) {
-//                    showSnackBar(getString(R.string.sign_in_successfully));
-//                    new Handler().postDelayed(() -> {
-//                        final Intent intent = new Intent(SignInActivity.this,
-//                                Activator.class);
-//
-//                        startActivity(intent);
-//                    }, 300);
-//                } else {
-//                    showSnackBar(getString(R.string.invalid_details));
-//                    userEmail.setText("");
-//                    userPassword.setText("");
-//                }
             }
         });
     }
 
-    private String hashPassword(final String password) {
-        try {
-            final MessageDigest messageDigest = MessageDigest.getInstance(getString(R.string.md5));
-
-            messageDigest.update(password.getBytes());
-
-            final byte[] bytes = messageDigest.digest();
-
-            final StringBuilder stringBuilder = new StringBuilder();
-            for (final byte aByte : bytes) {
-                stringBuilder.append(Integer.toString((aByte & 0xff) + 0x100, 16).substring(1));
-            }
-
-            return stringBuilder.toString();
-        } catch (NoSuchAlgorithmException exception) {
-            exception.printStackTrace();
-            return null;
-        }
-    }
-
     private void togglePasswordActivity() {
         if (isPasswordVisible) {
-            userPassword.setInputType(InputType.TYPE_CLASS_TEXT |
-                    InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+            userPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
             isPasswordVisible = false;
 
             passwordVisibilityToggle.setImageResource(R.drawable.visibility);
         } else {
-            userPassword.setInputType(InputType.TYPE_CLASS_TEXT |
-                    InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            userPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
             isPasswordVisible = true;
 
             passwordVisibilityToggle.setImageResource(R.drawable.visibility_off);
@@ -143,7 +110,7 @@ public class SignInActivity extends AppCompatActivity {
         final Snackbar snackbar = Snackbar.make(view, message, Snackbar.LENGTH_LONG);
 
         snackbar.setTextColor(getResources().getColor(R.color.black));
-        snackbar.setBackgroundTint(R.color.gray);
+        snackbar.setBackgroundTint(R.color.white);
         snackbar.show();
     }
 }

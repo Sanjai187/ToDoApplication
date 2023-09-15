@@ -64,23 +64,25 @@ public class ForgetActivity extends AppCompatActivity {
                 confirmPasswordToggle));
         resetPassword.setOnClickListener(view -> {
             final Credential credential = new Credential();
-            final String password = hashPassword(confirmPassword.getText().toString().trim());
+            final String password = confirmPassword.getText().toString().trim();
+            final String hint = newHint.getText().toString().trim();
 
-            credential.setEmail(hashPassword(userEmail.getText().toString().trim()));
-            credential.setPassword(hashPassword(newPassword.getText().toString().trim()));
+            credential.setEmail(userEmail.getText().toString().trim());
+            credential.setPassword(newPassword.getText().toString().trim());
+            credential.setHint(oldHint.getText().toString().trim());
 
-            if (TextUtils.isEmpty(credential.getEmail())
-                    || TextUtils.isEmpty(credential.getPassword())) {
+            if (TextUtils.isEmpty(credential.getEmail()) || TextUtils.isEmpty(credential.getPassword())
+                    || TextUtils.isEmpty(credential.getHint()) || TextUtils.isEmpty(hint)) {
                 showSnackBar(getString(R.string.fields_fill));
             } else if(! password.equals(credential.getPassword())) {
                 showSnackBar(getString(R.string.password_mismatch));
             } else {
                 authenticationService = new AuthenticationService("http://192.168.1.3:8080/");
 
-                authenticationService.resetPassword(credential, String.valueOf(newHint), new AuthenticationService.ApiResponseCallBack() {
+                authenticationService.resetPassword(credential, hint, new AuthenticationService.ApiResponseCallBack() {
                     @Override
                     public void onSuccess(final String response) {
-                        showSnackBar(getString(R.string.reset_successfully));
+                        showSnackBar(getString(R.string.password_updated));
                     }
 
                     @Override

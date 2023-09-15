@@ -45,6 +45,7 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
     private ProjectList projectList;
     private ProjectDao projectDao;
     private UserDao userDao;
+    private String email;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -52,9 +53,11 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
 
+        email = getIntent().getStringExtra(String.valueOf(R.string.user_email));
         final ImageView editButton = findViewById(R.id.editIcon);
         final ImageView backButton = findViewById(R.id.backToMenu);
         final Button addList = findViewById(R.id.addlist);
+        final ImageView logOut = findViewById(R.id.signOut);
         editText = findViewById(R.id.projectList);
         addButton = findViewById(R.id.addProject);
         projectList = new ProjectList();
@@ -71,6 +74,11 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
         backButton.setOnClickListener(view -> onBackPressed());
         addList.setOnClickListener(view -> navigationController.onClickTextVisibility());
         addButton.setOnClickListener(view -> navigationController.onAddProject());
+        logOut.setOnClickListener(view -> {
+            final Intent intent = new Intent(NavigationActivity.this, SignInActivity.class);
+
+            startActivity(intent);
+        });
         editButton.setOnClickListener(view -> {
             final Intent intent = new Intent(NavigationActivity.this, UserProfileActivity.class);
 
@@ -99,6 +107,7 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
 
     private void loadUserFromDB() {
         final UserProfile userProfile = userDao.getUserProfile();
+//        final UserProfile userProfile = userDao.getUserDetails(email);
 
         if (null != userProfile) {
             userName.setText(userProfile.getUserName());
