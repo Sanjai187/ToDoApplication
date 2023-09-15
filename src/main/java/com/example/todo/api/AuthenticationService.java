@@ -6,7 +6,6 @@ import androidx.annotation.NonNull;
 
 import com.example.todo.model.Credential;
 import com.example.todo.model.ResetPassword;
-import com.example.todo.model.SignIn;
 import com.example.todo.model.SignUp;
 import com.example.todo.model.UserProfile;
 
@@ -41,7 +40,7 @@ public class AuthenticationService {
                     assert response.body() != null;
                     apiResponseCallBack.onSuccess(response.body().toString());
                 }
-                apiResponseCallBack.onError(String.format("Request failed with status code %d", response.code()));
+                apiResponseCallBack.onError(String.format("Response message %s", response.message()));
             }
 
             @Override
@@ -52,8 +51,7 @@ public class AuthenticationService {
     }
 
     public void signIn(final Credential credential, final ApiResponseCallBack apiResponseCallBack) {
-        final SignIn signIn = new SignIn(credential);
-        final Call<ResponseBody> responseBodyCall = apiService.singIn(signIn);
+        final Call<ResponseBody> responseBodyCall = apiService.singIn(credential);
 
         responseBodyCall.enqueue(new Callback<ResponseBody>() {
             @SuppressLint("DefaultLocale")
@@ -63,7 +61,7 @@ public class AuthenticationService {
                     assert response.body() != null;
                     apiResponseCallBack.onSuccess(response.body().toString());
                 }
-                apiResponseCallBack.onError(String.format("Request failed with status code %d", response.code()));
+                apiResponseCallBack.onError(String.format("Response message %s", response.message()));
             }
 
             @Override
@@ -80,16 +78,16 @@ public class AuthenticationService {
         responseBodyCall.enqueue(new Callback<ResponseBody>() {
             @SuppressLint("DefaultLocale")
             @Override
-            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+            public void onResponse(@NonNull final Call<ResponseBody> call, @NonNull final Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
                     assert response.body() != null;
                     apiResponseCallBack.onSuccess(response.body().toString());
                 }
-                apiResponseCallBack.onError(String.format("Request failed with status code %d", response.code()));
+                apiResponseCallBack.onError(String.format("Response message %s", response.message()));
             }
 
             @Override
-            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable throwable) {
+            public void onFailure(@NonNull final Call<ResponseBody> call, @NonNull final Throwable throwable) {
                 apiResponseCallBack.onError(throwable.getMessage());
             }
         });

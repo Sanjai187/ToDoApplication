@@ -203,7 +203,11 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
             @Override
             public void onItemSelected(final AdapterView<?> parent, final View view, final int i, final long id) {
                 pageSize = Integer.parseInt(parent.getItemAtPosition(i).toString());
+                final int getTotalPages = (int) Math.ceil((double) todoItems.size() / pageSize);
 
+                if (currentPage > getTotalPages) {
+                    currentPage = getTotalPages;
+                }
                 updateRecyclerView();
                 updatePageNumber();
             }
@@ -255,10 +259,10 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
     }
 
     private void updateRecyclerView() {
-        int startIndex = (currentPage - 1) * pageSize;
-        int endIndex = Math.min(startIndex + pageSize, todoItems.size());
+        final int startIndex = (currentPage - 1) * pageSize;
+        final int endIndex = Math.min(startIndex + pageSize, todoItems.size());
+        final List<Todo> pageItems = todoItems.subList(startIndex, endIndex);
 
-        List<Todo> pageItems = todoItems.subList(startIndex, endIndex);
         todoAdapter.updateTodoItems(pageItems);
     }
 
