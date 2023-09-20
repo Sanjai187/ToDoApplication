@@ -87,17 +87,6 @@ public class SignUpActivity extends AppCompatActivity {
                 @Override
                 public void onSuccess(final String response) {
                     showSnackBar(getString(R.string.account));
-                    final long userId = userDao.insert(userProfile);
-
-                    if (-1 != userId) {
-                        showSnackBar(getString(R.string.account));
-                        userName.setText("");
-                        userEmail.setText("");
-                        userPassword.setText("");
-                        confirmPassword.setText("");
-                    } else {
-                        showSnackBar(getString(R.string.fail));
-                    }
                 }
 
                 @Override

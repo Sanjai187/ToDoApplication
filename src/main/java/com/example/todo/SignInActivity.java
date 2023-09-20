@@ -20,6 +20,9 @@ import com.example.todo.dao.impl.CredentialDaoImpl;
 import com.example.todo.model.Credential;
 import com.google.android.material.snackbar.Snackbar;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class SignInActivity extends AppCompatActivity {
 
     private CredentialDao credentialDao;
@@ -43,14 +46,12 @@ public class SignInActivity extends AppCompatActivity {
         credentialDao = new CredentialDaoImpl(this);
 
         signUp.setOnClickListener(view -> {
-            final Intent intent = new Intent(SignInActivity.this,
-                    SignUpActivity.class);
+            final Intent intent = new Intent(SignInActivity.this, SignUpActivity.class);
 
             startActivity(intent);
         });
         forgotPassword.setOnClickListener(view -> {
-            final Intent intent = new Intent(SignInActivity.this,
-                    ForgetActivity.class);
+            final Intent intent = new Intent(SignInActivity.this, ForgetActivity.class);
 
             startActivity(intent);
         });
@@ -69,15 +70,19 @@ public class SignInActivity extends AppCompatActivity {
 
                 authenticationService.signIn(credential, new AuthenticationService.ApiResponseCallBack() {
                     @Override
-                    public void onSuccess(final String response) {
+                    public void onSuccess(final String response) throws JSONException {
                         showSnackBar(getString(R.string.sign_in_successfully));
+                        final JSONObject jsonObject = new JSONObject(response);
+                        final JSONObject object = jsonObject.getJSONObject(getString(R.string.data));
+                        final String token = object.getString(getString(R.string.token));
+
                         new Handler().postDelayed(() -> {
                             final Intent intent = new Intent(SignInActivity.this,
-                                    Activator.class);
+                                    NavigationActivity.class);
 
-//                                intent.putExtra(getString(R.string.user_email), credential.getEmail());
+                            intent.putExtra(getString(R.string.token), token);
                             startActivity(intent);
-                        }, 500);
+                        }, 200);
                     }
 
                     @Override

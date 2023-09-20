@@ -62,7 +62,7 @@
             android:layout_gravity="start"
             android:fitsSystemWindows="true"
             android:orientation="vertical"
-            android:background="@color/cardview_dark_background">
+            android:background="@color/gray">
 
             <RelativeLayout
                 android:layout_width="match_parent"

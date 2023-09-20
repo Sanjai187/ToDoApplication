@@ -9,9 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import com.example.todo.dao.ProjectDao;
 import com.example.todo.database.DBHelper;
 import com.example.todo.database.table.ProjectTable;
-import com.example.todo.database.table.UserTable;
 import com.example.todo.model.Project;
-import com.example.todo.model.UserProfile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +28,7 @@ public class ProjectDaoImpl implements ProjectDao {
     public Long insert(final Project project) {
         final ContentValues values = new ContentValues();
 
-        values.put(projectTable.COLUMN_NAME, project.getLabel());
+        values.put(projectTable.COLUMN_NAME, project.getName());
         values.put(projectTable.COLUMN_USER_ID, project.getUserId());
         values.put(projectTable.COLUMN_ORDER, project.getOrder());
 
@@ -62,13 +60,13 @@ public class ProjectDaoImpl implements ProjectDao {
 
             if (null != cursor && cursor.moveToFirst()) {
                 do {
-                    final Long projectId = cursor.getLong(cursor.getColumnIndex(projectTable.COLUMN_ID));
+                    final String projectId = cursor.getString(cursor.getColumnIndex(projectTable.COLUMN_ID));
                     final String projectName = cursor.getString(cursor.getColumnIndex(projectTable.COLUMN_NAME));
                     final Long userId = cursor.getLong(cursor.getColumnIndex(projectTable.COLUMN_USER_ID));
                     final Project project = new Project();
 
                     project.setId(projectId);
-                    project.setLabel(projectName);
+                    project.setName(projectName);
                     project.setUserId(userId);
                     projects.add(project);
                 } while (cursor.moveToNext());

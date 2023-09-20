@@ -4,25 +4,26 @@ import androidx.annotation.NonNull;
 
 public class Project {
 
-    private Long id;
-    private String label;
+    private String id;
+    private String name;
     private Long userId;
     private Long order;
+    private String description;
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(final Long id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
-    public String getLabel() {
-        return label;
+    public String getName() {
+        return name;
     }
 
-    public void setLabel(final String label) {
-        this.label = label;
+    public void setName(final String name) {
+        this.name = name;
     }
 
     public Long getUserId() {
@@ -41,9 +42,16 @@ public class Project {
         this.order = order;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(final String description) {
+        this.description = description;
+    }
+
     @NonNull
     public String toString() {
-        return label;
+        return name;
     }
 }
-
