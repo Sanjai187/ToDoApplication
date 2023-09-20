@@ -17,7 +17,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/searchView"
             android:padding="15dp"
-            android:background="@color/cardview_shadow_start_color">
+            android:background="@color/gray">
 
             <ImageView
                 android:id="@+id/backButton1"
@@ -89,7 +89,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
-            android:background="@color/cardview_shadow_start_color">
+            android:background="@color/gray">
 
             <ImageView
                 android:id="@+id/prev_page"

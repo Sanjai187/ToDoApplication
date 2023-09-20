@@ -90,26 +90,7 @@ public class ForgetActivity extends AppCompatActivity {
                         showSnackBar(String.format(getString(R.string.request_failed_s), errorMessage));
                     }
                 });
-//                final boolean emailExists = credentialDao.checkEmailExists(credential.getEmail());
-//
-//                if (emailExists) {
-//                    final long updatedCredentialRows = credentialDao.updatePassword(credential);
-//
-//                    if (0 < updatedCredentialRows) {
-//                        showSnackBar(getString(R.string.password_update));
-//                        userEmail.setText("");
-//                        newPassword.setText("");
-//                        confirmPassword.setText("");
-//                        finish();
-//                    } else {
-//                        showSnackBar(getString(R.string.fail));
-//                    }
-//                } else {
-//                    showSnackBar(getString(R.string.invalid_email));
-//                    userEmail.setText("");
-//                    newPassword.setText("");
-//                    confirmPassword.setText("");
-//                }
+                finish();
             }
         });
     }

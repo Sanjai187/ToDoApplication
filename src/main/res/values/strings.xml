@@ -110,4 +110,11 @@
     <string name="password_updated">Password Updated</string>
     <string name="new_hint">New Hint</string>
     <string name="old_hint">Old Hint</string>
+    <string name="project_created">Project Created</string>
+    <string name="data">data</string>
+    <string name="token">token</string>
+    <string name="description">description</string>
+    <string name="id">_id</string>
+    <string name="Name">name</string>
+    <string name="removed_project">Removed Project</string>
 </resources>

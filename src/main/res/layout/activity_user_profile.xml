@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/linerLayout"
-    android:background="@color/cardview_shadow_start_color">
+    android:background="@color/gray">
 
     <RelativeLayout
         android:layout_width="match_parent"

@@ -7,7 +7,7 @@
     android:orientation="vertical"
     tools:context=".SettingActivity"
     android:id="@+id/settingsView"
-    android:background="@color/cardview_shadow_start_color">
+    android:background="@color/gray">
 
     <LinearLayout
         android:layout_width="wrap_content"
