@@ -19,16 +19,17 @@ import com.example.todo.model.Project;
 import java.util.Collections;
 import java.util.List;
 
-public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHolder> implements ItemTouchHelper {
+public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHolder> {
 
     private final List<Project> projects;
     private final ProjectDao projectDao;
     private OnItemClickListener onItemClickListener;
 
     public interface OnItemClickListener {
-        void onItemClick(final int position);
 
+        void onItemClick(final int position);
         void onRemoveButtonClick(int position);
+        void onProjectOrderUpdateListener(final Project fromProject, final Project toProject);
     }
 
     public ProjectAdapter(final List<Project> projects, final ProjectDao projectDao) {
@@ -50,7 +51,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ProjectAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final ProjectAdapter.ViewHolder holder, final int position) {
         final Project project = projects.get(position);
         final Typeface typeface = TypeFaceUtil.getSelectedTypeFace();
         final float fontSize = TypeFaceUtil.getSelectedFontSize();
@@ -86,7 +87,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
         return projects.size();
     }
 
-    @Override
+
     public void onItemMove(final int fromPosition, final int toPosition) {
         final Project fromProject = projects.get(fromPosition);
         final Project toProject = projects.get(toPosition);
@@ -95,8 +96,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
         fromProject.setOrder((long) (toPosition + 1));
         toProject.setOrder((long) (fromPosition + 1));
         notifyItemMoved(fromPosition, toPosition);
-        projectDao.updateProjectsOrder(fromProject);
-        projectDao.updateProjectsOrder(toProject);
+        onItemClickListener.onProjectOrderUpdateListener(fromProject, toProject);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

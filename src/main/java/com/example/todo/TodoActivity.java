@@ -24,7 +24,6 @@ import com.example.todo.dao.impl.ItemDaoImpl;
 import com.example.todo.model.Todo;
 import com.example.todo.model.TodoList;
 import com.example.todo.service.TodoService;
-import com.example.todo.todoadapter.TodoAdapter;
 
 import java.util.List;
 
@@ -50,14 +49,13 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
     private TableLayout layout;
     private Spinner filterSpinner;
     private String selectedList;
-    private Long projectId;
+    private String projectId;
     private Long id = 0L;
     private List<Todo> todoItems;
     private int currentPage = 1;
     private TextView pageNumber;
     private int pageSize = 5;
     private ItemDao itemDao;
-    private TodoAdapter todoAdapter;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -70,7 +68,7 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
     }
 
     private void initializeData() {
-        projectId = getIntent().getLongExtra(getString(R.string.project_id), 0L);
+        projectId = getIntent().getStringExtra(getString(R.string.project_id));
         selectedList = getIntent().getStringExtra(getString(R.string.project_name));
         todoList = new TodoList();
         todoItems = todoList.getAllList();
@@ -111,7 +109,7 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
         addList.setOnClickListener(view -> todoController.onClickAddVisibility());
         next.setOnClickListener(view -> todoController.onClickNextPage());
         previous.setOnClickListener(view -> todoController.onclickPreviousPage());
-        loadTodoItemsFromDatabase(projectId);
+//        loadTodoItemsFromDatabase(projectId);
         todoController.setupFilterSpinner();
     }
 
@@ -138,16 +136,15 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
      * Add a new item to the todo list
      * </p>
      */
-    public void onAddItem() {
+    public void onAddTodoItem() {
         final String text = editText.getText().toString().trim();
 
         if (!text.isEmpty()) {
             final Todo todo = new Todo(text);
 
             todo.setParentId(projectId);
-            todo.setId(++id);
+            todo.setId(String.valueOf(++id));
             todo.setStatus(Todo.Status.NOT_COMPLETED);
-            todo.setOrder((long) todoAdapter.getItemCount() + 1);
             todoList.add(todo);
             itemDao.insert(todo);
             todoItems = todoList.getAllList();
@@ -248,7 +245,7 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
         });
 
         tableRow.addView(checkBox);
-        textView.setText(todo.getLabel());
+        textView.setText(todo.getName());
         tableRow.addView(textView);
         closeIcon.setImageResource(R.drawable.close);
         closeIcon.setOnClickListener(view -> removeItem(tableRow, todo));
@@ -257,9 +254,9 @@ public class TodoActivity extends AppCompatActivity implements TodoService{
     }
 
     private void removeItem(final TableRow row, final Todo todo) {
-        todoList.remove(todo.getId());
+        todoList.remove(Long.valueOf(todo.getId()));
         layout.removeView(row);
-        itemDao.onDelete(todo.getId());
+        itemDao.onDelete(Long.valueOf(todo.getId()));
         final int totalPageCount = (int) Math.ceil((double) todoItems.size() / pageSize);
 
         if (currentPage > totalPageCount) {

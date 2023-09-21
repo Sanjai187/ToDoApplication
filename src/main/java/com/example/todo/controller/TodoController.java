@@ -1,22 +1,17 @@
 package com.example.todo.controller;
 
-import com.example.todo.TodoActivity;
-import com.example.todo.TodoListActivity;
-import com.example.todo.model.Project;
 import com.example.todo.service.TodoService;
 
 public class TodoController {
 
-    private final TodoListActivity activity;
     private final TodoService service;
 
-    public TodoController(final TodoListActivity activity, final TodoService service) {
-        this.activity = activity;
+    public TodoController(final TodoService service) {
         this.service = service;
     }
 
     public void onAddItem() {
-        service.onAddItem();
+        service.onAddTodoItem();
     }
 
     public void setupFilterSpinner() {

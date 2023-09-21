@@ -22,7 +22,7 @@ import com.example.todo.service.ActivatorService;
  */
 public class Activator extends AppCompatActivity implements ActivatorService{
 
-    private String selectedList;
+    private String token;
     private ActivatorController activatorController;
 
     /**
@@ -37,11 +37,12 @@ public class Activator extends AppCompatActivity implements ActivatorService{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        token = getIntent().getStringExtra(getString(R.string.token));
         final ImageButton menuButton = findViewById(R.id.menuButton);
         final ImageView settingButton = findViewById(R.id.settings);
-        activatorController = new ActivatorController(this, this);
+        activatorController = new ActivatorController(this);
 
-        menuButton.setOnClickListener(view -> activatorController.onClickMenu(selectedList));
+        menuButton.setOnClickListener(view -> activatorController.onClickMenu());
         settingButton.setOnClickListener(view -> activatorController.onClickSetting());
         TypeFaceUtil.applyFontToView(getWindow().getDecorView().findViewById(android.R.id.content));
         TypeFaceUtil.applyTextSizeToView(getWindow().getDecorView().findViewById(android.R.id.content));
@@ -49,9 +50,10 @@ public class Activator extends AppCompatActivity implements ActivatorService{
     }
 
     @Override
-    public void goToNavigation(final String selectedList) {
+    public void goToNavigation() {
         final Intent intent = new Intent(Activator.this, NavigationActivity.class);
 
+        intent.putExtra(getString(R.string.token), token);
         startActivity(intent);
     }
 

@@ -6,4 +6,5 @@ public interface OnItemClickListener {
 
     void onCheckBoxClick(final Todo todoItem);
     void onCloseIconClick(final Todo todoItem);
+    void onItemOrderUpdateListener(final Todo fromItem, final Todo toItem);
 }

@@ -2,16 +2,16 @@ package com.example.todo.model;
 
 public class UserProfile {
 
-    private Long id;
+    private String  id;
     private String userName;
     private String title;
     private String email;
 
-    public Long getId() {
+    public String  getId() {
         return id;
     }
 
-    public void setId(final Long id) {
+    public void setId(final String  id) {
         this.id = id;
     }
 

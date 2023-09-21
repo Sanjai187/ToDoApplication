@@ -15,8 +15,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.todo.api.AuthenticationService;
-import com.example.todo.dao.CredentialDao;
-import com.example.todo.dao.impl.CredentialDaoImpl;
 import com.example.todo.model.Credential;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -25,7 +23,6 @@ import org.json.JSONObject;
 
 public class SignInActivity extends AppCompatActivity {
 
-    private CredentialDao credentialDao;
     private EditText userEmail;
     private EditText userPassword;
     private ImageView passwordVisibilityToggle;
@@ -43,7 +40,6 @@ public class SignInActivity extends AppCompatActivity {
         passwordVisibilityToggle = findViewById(R.id.passwordVisibilityToggle);
         userEmail = findViewById(R.id.emailEditText);
         userPassword = findViewById(R.id.passwordEditText);
-        credentialDao = new CredentialDaoImpl(this);
 
         signUp.setOnClickListener(view -> {
             final Intent intent = new Intent(SignInActivity.this, SignUpActivity.class);
@@ -51,7 +47,7 @@ public class SignInActivity extends AppCompatActivity {
             startActivity(intent);
         });
         forgotPassword.setOnClickListener(view -> {
-            final Intent intent = new Intent(SignInActivity.this, ForgetActivity.class);
+            final Intent intent = new Intent(SignInActivity.this, PasswordResetActivity.class);
 
             startActivity(intent);
         });
@@ -78,7 +74,7 @@ public class SignInActivity extends AppCompatActivity {
 
                         new Handler().postDelayed(() -> {
                             final Intent intent = new Intent(SignInActivity.this,
-                                    NavigationActivity.class);
+                                    Activator.class);
 
                             intent.putExtra(getString(R.string.token), token);
                             startActivity(intent);

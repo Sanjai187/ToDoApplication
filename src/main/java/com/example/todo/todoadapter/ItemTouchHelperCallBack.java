@@ -5,9 +5,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class ItemTouchHelperCallBack extends androidx.recyclerview.widget.ItemTouchHelper.Callback {
 
-    private final ItemTouchHelper adapter;
+    private final TodoAdapter adapter;
 
-    public ItemTouchHelperCallBack(final ItemTouchHelper adapter) {
+    public ItemTouchHelperCallBack(final TodoAdapter adapter) {
         this.adapter = adapter;
     }
 
