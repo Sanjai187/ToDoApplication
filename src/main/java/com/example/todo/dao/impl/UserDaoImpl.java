@@ -61,7 +61,7 @@ public class UserDaoImpl implements UserDao {
         if (cursor != null && cursor.moveToFirst()) {
             final UserProfile userProfile =  new UserProfile();
 
-            userProfile.setId(cursor.getLong(cursor.getColumnIndex(userTable.COLUMN_ID)));
+            userProfile.setId(cursor.getString(cursor.getColumnIndex(userTable.COLUMN_ID)));
             userProfile.setUserName(cursor.getString(cursor.getColumnIndex(userTable.COLUMN_NAME)));
             userProfile.setTitle(cursor.getString(cursor.getColumnIndex(userTable.COLUMN_DESCRIPTION)));
             cursor.close();
@@ -85,10 +85,9 @@ public class UserDaoImpl implements UserDao {
         if (null != cursor && cursor.moveToFirst()) {
             userProfile = new UserProfile();
 
-            userProfile.setId(cursor.getLong(cursor.getColumnIndex(userTable.COLUMN_ID)));
+            userProfile.setId(cursor.getString(cursor.getColumnIndex(userTable.COLUMN_ID)));
             userProfile.setUserName(cursor.getString(cursor.getColumnIndex(userTable.COLUMN_NAME)));
-            userProfile.setTitle(cursor.getString(cursor.getColumnIndex(
-                    userTable.COLUMN_DESCRIPTION)));
+            userProfile.setTitle(cursor.getString(cursor.getColumnIndex(userTable.COLUMN_DESCRIPTION)));
             userProfile.setEmail(email);
             cursor.close();
         }

@@ -1,15 +1,12 @@
 package com.example.todo.controller;
 
-import com.example.todo.SearchActivity;
 import com.example.todo.service.SearchService;
 
 public class SearchController {
 
-    private final SearchActivity activity;
     private final SearchService service;
 
-    public SearchController(final SearchActivity activity, final SearchService service) {
-        this.activity = activity;
+    public SearchController(final SearchService service) {
         this.service = service;
     }
 

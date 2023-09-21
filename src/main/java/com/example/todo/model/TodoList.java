@@ -27,6 +27,11 @@ public class TodoList {
         return todoList;
     }
 
+    public void setAllItems(final List<Todo> todoItemList) {
+        todoList.clear();
+        todoList.addAll(todoItemList);
+    }
+
     public Query getQuery() {
         return query;
     }

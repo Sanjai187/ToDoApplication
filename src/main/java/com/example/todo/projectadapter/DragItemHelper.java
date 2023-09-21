@@ -5,9 +5,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class DragItemHelper extends androidx.recyclerview.widget.ItemTouchHelper.Callback {
 
-    private final ItemTouchHelper adapter;
+    private final ProjectAdapter adapter;
 
-    public DragItemHelper(final ItemTouchHelper adapter) {
+    public DragItemHelper(final ProjectAdapter adapter) {
         this.adapter = adapter;
     }
 

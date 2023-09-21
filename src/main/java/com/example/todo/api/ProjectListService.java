@@ -2,10 +2,7 @@ package com.example.todo.api;
 
 import androidx.annotation.NonNull;
 
-import com.example.todo.model.Credential;
-import com.example.todo.model.ResetPassword;
-import com.example.todo.model.SignUp;
-import com.example.todo.model.UserProfile;
+import com.example.todo.model.Project;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,56 +17,48 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class AuthenticationService {
+public class ProjectListService {
 
-    private final ApiService apiService;
+    private final ProjectApiService apiService;
 
-    public AuthenticationService(final String url) {
-        final Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(url)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        apiService = retrofit.create(ApiService.class);
-    }
-
-    public AuthenticationService(final String url, final String token) {
+    public ProjectListService(final String baseUrl, final String token) {
         final OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
 
         httpClient.addInterceptor(new Interceptor(token));
         final OkHttpClient okHttpClient = httpClient.build();
         final Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(url)
+                .baseUrl(baseUrl)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(okHttpClient)
                 .build();
 
-        apiService = retrofit.create(ApiService.class);
+        apiService = retrofit.create(ProjectApiService.class);
     }
 
-    public void signUp(final UserProfile userProfile, final Credential credential, final ApiResponseCallBack apiResponseCallBack) {
-        final SignUp signUp = new SignUp(userProfile, credential);
-        final Call<ResponseBody> responseBodyCall = apiService.signUpRequest(signUp);
+    public void create(final Project project, final AuthenticationService.ApiResponseCallBack apiResponseCallBack) {
+        final Call<ResponseBody> responseBodyCall = apiService.create(project);
 
         executeRequest(responseBodyCall, apiResponseCallBack);
     }
 
-    public void signIn(final Credential credential, final ApiResponseCallBack apiResponseCallBack) {
-        final Call<ResponseBody> responseBodyCall = apiService.singInRequest(credential);
+    public void getAll(final AuthenticationService.ApiResponseCallBack apiResponseCallBack) {
+        final Call<ResponseBody> responseBodyCall = apiService.getAll();
 
         executeRequest(responseBodyCall, apiResponseCallBack);
     }
 
-    public void resetPassword(final Credential credential, final String newHint, final ApiResponseCallBack apiResponseCallBack) {
-        final ResetPassword resetPassword = new ResetPassword(credential, newHint);
-        final Call<ResponseBody> responseBodyCall = apiService.resetPasswordRequest(resetPassword);
+    public void delete(final String id, final AuthenticationService.ApiResponseCallBack apiResponseCallBack) {
+        final Call<ResponseBody> responseBodyCall = apiService.delete(id);
 
         executeRequest(responseBodyCall, apiResponseCallBack);
     }
 
-    public void getUserDetail(final ApiResponseCallBack apiResponseCallBack) {
-        final Call<ResponseBody> responseBodyCall = apiService.getUserDetail();
+    public void updateOrder(final Project project,
+                            final AuthenticationService.ApiResponseCallBack callBack) {
+        final Call<ResponseBody> call = apiService.updateOrder(project.getId(),
+                Math.toIntExact(project.getOrder()));
 
-        executeRequest(responseBodyCall, apiResponseCallBack);
+        executeRequest(call, callBack);
     }
 
     private void executeRequest(final Call<ResponseBody> responseBodyCall, final AuthenticationService.ApiResponseCallBack apiResponseCallBack) {
@@ -81,12 +70,8 @@ public class AuthenticationService {
                     assert response.body() != null;
 
                     try {
-                        try {
-                            apiResponseCallBack.onSuccess(response.body().string());
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    } catch (JSONException exception) {
+                        apiResponseCallBack.onSuccess(response.body().string());
+                    } catch (IOException | JSONException exception) {
                         throw new RuntimeException(exception);
                     }
                 } else {
@@ -109,12 +94,5 @@ public class AuthenticationService {
                 apiResponseCallBack.onError(throwable.getMessage());
             }
         });
-    }
-
-
-    public interface ApiResponseCallBack {
-
-        void onSuccess(final String response) throws JSONException;
-        void onError(final String errorMessage);
     }
 }

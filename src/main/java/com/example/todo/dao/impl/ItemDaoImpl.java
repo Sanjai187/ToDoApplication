@@ -9,7 +9,6 @@ import android.database.sqlite.SQLiteDatabase;
 import com.example.todo.dao.ItemDao;
 import com.example.todo.database.DBHelper;
 import com.example.todo.database.table.ItemTable;
-import com.example.todo.model.Project;
 import com.example.todo.model.Todo;
 
 import java.util.ArrayList;
@@ -30,7 +29,7 @@ public class ItemDaoImpl implements ItemDao {
     public Long insert(final Todo todo) {
         final ContentValues values = new ContentValues();
 
-        values.put(itemTable.COLUMN_NAME, todo.getLabel());
+        values.put(itemTable.COLUMN_NAME, todo.getName());
         values.put(itemTable.COLUMN_PROJECT_ID, todo.getParentId());
         values.put(itemTable.COLUMN_STATUS, String.valueOf(todo.getStatus()).toLowerCase());
         values.put(itemTable.COLUMN_ORDER, todo.getOrder());
@@ -78,8 +77,8 @@ public class ItemDaoImpl implements ItemDao {
                     final String status = cursor.getString(cursor.getColumnIndex(itemTable.COLUMN_STATUS));
                     final Todo todo = new Todo(itemName);
 
-                    todo.setId(itemId);
-                    todo.setParentId(projectId);
+                    todo.setId(String.valueOf(itemId));
+//                    todo.setParentId(projectId);
                     todo.setStatus(Todo.Status.valueOf(status.toUpperCase()));
                     todoList.add(todo);
                 } while (cursor.moveToNext());

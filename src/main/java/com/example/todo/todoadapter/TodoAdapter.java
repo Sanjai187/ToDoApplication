@@ -15,22 +15,18 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todo.R;
 import com.example.todo.TypeFaceUtil;
-import com.example.todo.dao.ItemDao;
 import com.example.todo.model.Todo;
 
 import java.util.Collections;
 import java.util.List;
 
-public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
-        implements ItemTouchHelper {
+public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder> {
 
-    private List<Todo> todo;
-    private ItemDao itemDao;
-    private OnItemClickListener listener;
+    private List<Todo> todoList;
+    private OnItemClickListener onItemClickListener;
 
-    public TodoAdapter(final List<Todo> todo, final ItemDao itemDao) {
-        this.todo = todo;
-        this.itemDao = itemDao;
+    public TodoAdapter(final List<Todo> todoList) {
+        this.todoList = todoList;
     }
 
     @NonNull
@@ -44,7 +40,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
 
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, final int position) {
-        final Todo todoItem = todo.get(position);
+        final Todo todoItem = todoList.get(position);
         final Typeface typeface = TypeFaceUtil.getSelectedTypeFace();
         final float fontSize = TypeFaceUtil.getSelectedFontSize();
 
@@ -54,32 +50,50 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
             holder.todoTextView.setTextSize(fontSize);
         }
 
-        holder.bind(todoItem, listener);
+        holder.bind(todoItem, onItemClickListener);
     }
 
     @Override
     public int getItemCount() {
-        return todo.size();
+        return todoList.size();
     }
 
-    public void setOnClickListener(final OnItemClickListener listener) {
-        this.listener = listener;
+    public void setOnClickListener(final OnItemClickListener onClickListener) {
+        this.onItemClickListener = onClickListener;
     }
 
-    @Override
+
     public void onItemMove(final int fromPosition, final int toPosition) {
-        final Todo fromList = todo.get(fromPosition);
-        final Todo toList = todo.get(toPosition);
+        final Todo fromItem = todoList.get(fromPosition);
+        final Todo toItem = todoList.get(toPosition);
 
-        Collections.swap(todo, fromPosition, toPosition);
-        fromList.setOrder((long) (toPosition + 1));
-        toList.setOrder((long) (fromPosition + 1));
+        Collections.swap(todoList, fromPosition, toPosition);
+        fromItem.setOrder((long) (toPosition + 1));
+        toItem.setOrder((long) (fromPosition + 1));
+        onItemClickListener.onItemOrderUpdateListener(fromItem, toItem);
         notifyItemMoved(fromPosition, toPosition);
-        itemDao.updateTodoItemOrder(fromList);
-        itemDao.updateTodoItemOrder(toList);
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    @SuppressLint("NotifyDataSetChanged")
+    public void updateTodoItems(List<Todo> updatedItems) {
+        this.todoList = updatedItems;
+        notifyDataSetChanged();
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void clearProjects() {
+        this.todoList.clear();
+        notifyDataSetChanged();
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void addProjects(final List<Todo> newProjects) {
+        todoList.clear();
+        todoList.addAll(newProjects);
+        notifyDataSetChanged();
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder {
 
         private final TextView todoTextView;
         private final CheckBox checkBox;
@@ -90,32 +104,42 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
             todoTextView = itemView.findViewById(R.id.todoTextView);
             checkBox = itemView.findViewById(R.id.todoCheckBox);
             todoRemoveButton = itemView.findViewById(R.id.todoRemoveButton);
+            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                final int position = getAdapterPosition();
+
+                if (position != RecyclerView.NO_POSITION) {
+                    final Todo todoItem = todoList.get(position);
+
+                    todoItem.setChecked();
+                    todoItem.setStatus(isChecked ? Todo.Status.COMPLETED
+                            : Todo.Status.NOT_COMPLETED);
+                    todoTextView.setTextColor(todoItem.getStatus() == Todo.Status.COMPLETED
+                            ? Color.GRAY : Color.BLACK);
+                    onItemClickListener.onCheckBoxClick(todoItem);
+                }
+            });
+            todoRemoveButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final int position = getAdapterPosition();
+
+                    if (position != RecyclerView.NO_POSITION) {
+                        final Todo todoItem = todoList.get(position);
+
+                        todoList.remove(todoItem);
+                        notifyItemRemoved(position);
+                        onItemClickListener.onCloseIconClick(todoItem);
+                    }
+                }
+            });
         }
 
         public void bind(final Todo todoItem, final OnItemClickListener listener) {
             checkBox.setChecked(todoItem.getStatus() == Todo.Status.COMPLETED);
-            todoTextView.setText(todoItem.getLabel());
+            todoTextView.setText(todoItem.getName());
             todoTextView.setTextColor(todoItem.getStatus() == Todo.Status.COMPLETED ? Color.RED : Color.BLACK);
             checkBox.setOnClickListener(v -> listener.onCheckBoxClick(todoItem));
             todoRemoveButton.setOnClickListener(v -> listener.onCloseIconClick(todoItem));
         }
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    public void updateTodoItems(List<Todo> updatedItems) {
-        this.todo = updatedItems;
-        notifyDataSetChanged();
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    public void clearProjects() {
-        this.todo.clear();
-        notifyDataSetChanged();
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    public void addProjects(final List<Todo> newProjects) {
-        this.todo.addAll(newProjects);
-        notifyDataSetChanged();
     }
 }

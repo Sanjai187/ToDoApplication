@@ -4,15 +4,16 @@ import androidx.annotation.NonNull;
 
 public class Todo {
 
-    private Long id;
-    private String label;
+    private String id;
+    private String name;
     private boolean isChecked;
-    private Long parentId;
+    private String parentId;
     private Status status;
     private Long order;
+    private String description;
 
-    public Todo(final String label) {
-        this.label = label;
+    public Todo(final String name) {
+        this.name = name;
     }
 
     public enum Status {
@@ -20,20 +21,20 @@ public class Todo {
         NOT_COMPLETED
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(final Long id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
-    public String getLabel() {
-        return label;
+    public String getName() {
+        return name;
     }
 
-    public void setLabel(final String label) {
-        this.label = label;
+    public void setName(final String label) {
+        this.name = label;
     }
 
     public boolean isChecked() {
@@ -44,11 +45,11 @@ public class Todo {
         this.isChecked =! this.isChecked;
     }
 
-    public Long getParentId() {
+    public String  getParentId() {
         return parentId;
     }
 
-    public void setParentId(final Long parentId) {
+    public void setParentId(final String  parentId) {
         this.parentId = parentId;
     }
 
@@ -68,8 +69,16 @@ public class Todo {
         this.order = order;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(final String description) {
+        this.description = description;
+    }
+
     @NonNull
     public String toString() {
-        return label;
+        return name;
     }
 }

@@ -1,8 +1,6 @@
 package com.example.todo;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,11 +16,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.example.todo.api.AuthenticationService;
+import com.example.todo.api.ProjectListService;
 import com.example.todo.controller.NavigationController;
 import com.example.todo.dao.ProjectDao;
-import com.example.todo.dao.UserDao;
 import com.example.todo.dao.impl.ProjectDaoImpl;
-import com.example.todo.dao.impl.UserDaoImpl;
 import com.example.todo.model.Project;
 import com.example.todo.model.ProjectList;
 import com.example.todo.model.UserProfile;
@@ -36,6 +33,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class NavigationActivity extends AppCompatActivity implements NavigationService {
@@ -43,17 +42,16 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
     private List<Project> projects;
     private ProjectAdapter projectAdapter;
     private NavigationController navigationController;
-    private static Long id = 0L;
     private static final int REQUEST_CODE = 1;
-    private TextView profileIcon;
-    private TextView userName;
-    private TextView userTitle;
-    private Button addButton;
+    private TextView profileIconTextView;
+    private TextView userNameTextView;
+    private TextView userTitleTextView;
+    private Button addProjectButton;
     private Long userId;
-    private EditText editText;
+    private EditText projectNameEditText;
     private ProjectList projectList;
     private ProjectDao projectDao;
-    private UserDao userDao;
+    private UserProfile userProfile;
     private String token;
 
     @SuppressLint("MissingInflatedId")
@@ -63,32 +61,27 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
         setContentView(R.layout.activity_navigation);
 
         token = getIntent().getStringExtra(getString(R.string.token));
-        final DrawerLayout layout = findViewById(R.id.drawerLayout);
-        final ImageView menuButton = findViewById(R.id.menuButton);
-        final ImageView settingButton = findViewById(R.id.settings);
+        final ImageView backButton = findViewById(R.id.backToMenu);
         final ImageView editButton = findViewById(R.id.editIcon);
         final Button addList = findViewById(R.id.addlist);
         final ImageView logOut = findViewById(R.id.signOut);
-        editText = findViewById(R.id.projectList);
-        addButton = findViewById(R.id.addProject);
+        projectNameEditText = findViewById(R.id.projectList);
+        addProjectButton = findViewById(R.id.addProject);
         projectList = new ProjectList();
-        profileIcon = findViewById(R.id.profileIcon);
-        userName = findViewById(R.id.userName);
-        userTitle = findViewById(R.id.userTitle);
-        navigationController = new NavigationController(this, this, projectList);
+        profileIconTextView = findViewById(R.id.profileIcon);
+        userNameTextView = findViewById(R.id.userName);
+        userTitleTextView = findViewById(R.id.userTitle);
+        navigationController = new NavigationController(this);
         projectDao = new ProjectDaoImpl(this);
-        userDao = new UserDaoImpl(this);
+        userProfile = new UserProfile();
         projects = projectList.getAllList();
 
         initRecyclerView();
-        menuButton.setOnClickListener(view -> layout.openDrawer(GravityCompat.START));
+        getUserDetails();
+        loadProjectFromDB();
+        backButton.setOnClickListener(view -> onBackPressed());
         addList.setOnClickListener(view -> navigationController.onClickTextVisibility());
-        addButton.setOnClickListener(view -> navigationController.onAddProject());
-        settingButton.setOnClickListener(view -> {
-            final Intent intent = new Intent(NavigationActivity.this, SettingActivity.class);
-
-            startActivity(intent);
-        });
+        addProjectButton.setOnClickListener(view -> navigationController.onAddProject());
         logOut.setOnClickListener(view -> {
             final Intent intent = new Intent(NavigationActivity.this, SignInActivity.class);
 
@@ -97,8 +90,8 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
         editButton.setOnClickListener(view -> {
             final Intent intent = new Intent(NavigationActivity.this, UserProfileActivity.class);
 
-            intent.putExtra(getString(R.string.user), userName.getText().toString());
-            intent.putExtra(getString(R.string.user_title), userTitle.getText().toString());
+            intent.putExtra(getString(R.string.user), userNameTextView.getText().toString());
+            intent.putExtra(getString(R.string.user_title), userTitleTextView.getText().toString());
             startActivityIfNeeded(intent, REQUEST_CODE);
         });
         TypeFaceUtil.applyFontToView(getWindow().getDecorView().findViewById(android.R.id.content));
@@ -116,40 +109,62 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
 
         recyclerView.setAdapter(projectAdapter);
         touchHelper.attachToRecyclerView(recyclerView);
-        loadProjectFromDB();
         projectAdapter.setOnItemClickListener(new ProjectAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(final int position) {
-                final Project selectedProject = projectList.getAllList().get(position);
-
-                navigationController.onListItemClicked(selectedProject);
+                navigationController.onListItemClicked(projectList.getAllList().get(position));
             }
 
             @Override
             public void onRemoveButtonClick(final int position) {
-                final Project projectToRemove = projects.get(position);
+                removeProject(projects.get(position));
+            }
 
-                removeProject(projectToRemove);
+            @Override
+            public void onProjectOrderUpdateListener(final Project fromProject, final Project toProject) {
+                updateProjectOrder(fromProject, toProject);
             }
         });
     }
 
-//    private void loadUserFromDB() {
-//        final UserProfile userProfile = userDao.getUserProfile();
-//        final UserProfile userProfile = userDao.getUserDetails(email);
-//
-//        if (null != userProfile) {
-//            userName.setText(userProfile.getUserName());
-//            userTitle.setText(userProfile.getTitle());
-//            profileIcon.setText(userProfile.getProfileIcon());
-//            userId = userProfile.getId();
-//        }
-//    }
+    private void getUserDetails() {
+        final AuthenticationService authenticationService = new AuthenticationService(getString(R.string.base_url), token);
+
+        authenticationService.getUserDetail(new AuthenticationService.ApiResponseCallBack() {
+            @Override
+            public void onSuccess(final String response) {
+                setUserDetails(response);
+            }
+
+            @Override
+            public void onError(final String errorMessage) {
+                showSnackBar(errorMessage);
+            }
+        });
+    }
+
+    private void setUserDetails(final String response) {
+        try {
+            final JSONObject jsonObject = new JSONObject(response);
+            final JSONObject data = jsonObject.getJSONObject(getString(R.string.data));
+
+            userProfile.setId(data.getString(getString(R.string.id)));
+            userProfile.setUserName(data.getString(getString(R.string.Name)));
+            userProfile.setTitle(data.getString(getString(R.string.Title)));
+            userProfile.setEmail(data.getString(getString(R.string.Email)));
+            userNameTextView.setText(userProfile.getUserName());
+            userTitleTextView.setText(userProfile.getTitle());
+            profileIconTextView.setText(userProfile.getProfileIcon());
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
 
     private void loadProjectFromDB(){
-        final AuthenticationService authenticationService = new AuthenticationService("http://192.168.1.3:8080/", token);
+        final ProjectListService projectListService = new ProjectListService("http://192.168.1.3:8080/", token);
 
-        authenticationService.getAllProject(new AuthenticationService.ApiResponseCallBack() {
+        projectListService.getAll(new AuthenticationService.ApiResponseCallBack() {
             @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onSuccess(final String response) {
@@ -173,19 +188,27 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
             final JSONObject jsonObject = new JSONObject(responseBody);
             final JSONArray data = jsonObject.getJSONArray(getString(R.string.data));
 
-            for (int i = 0; i <= data.length(); i++) {
-                final JSONObject jsonObjects = data.getJSONObject(1);
-                final String projectId = jsonObjects.getString(getString(R.string.id));
-                final String projectName = jsonObjects.getString(getString(R.string.Name));
-                final String description = jsonObjects.getString(getString(R.string.description));
+            for (int i = 0; i < data.length(); i++) {
+                final JSONObject jsonObjects = data.getJSONObject(i);
+                final JSONObject additionalAttributes = jsonObjects.getJSONObject(
+                        getString(R.string.additional_attributes));
 
-                final Project project = new Project();
+                if (userProfile.getId().equals(additionalAttributes
+                        .getString(getString(R.string.created_by)))) {
+                    final Project project = new Project();
 
-                project.setId(projectId);
-                project.setName(projectName);
-                project.setDescription(description);
-                projects.add(project);
+                    project.setId(jsonObjects.getString(getString(R.string.id)));
+                    project.setName(jsonObjects.getString(getString(R.string.Name)));
+                    project.setOrder((long) jsonObjects.getInt(getString(R.string.sort_order)));
+                    projects.add(project);
+                }
             }
+            Collections.sort(projects, new Comparator<Project>() {
+                @Override
+                public int compare(final Project project1, final Project project2) {
+                    return Long.compare(project1.getOrder(), project2.getOrder());
+                }
+            });
         } catch (JSONException exception) {
             throw new RuntimeException(exception);
         }
@@ -193,13 +216,36 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
     }
 
     private void removeProject(final Project project) {
-        final AuthenticationService authenticationService = new AuthenticationService("http://192.168.1.3:8080/", token);
+        final ProjectListService projectListService = new ProjectListService("http://192.168.1.3:8080/", token);
 
-        authenticationService.delete(project.getId(), new AuthenticationService.ApiResponseCallBack() {
+        projectListService.delete(project.getId(), new AuthenticationService.ApiResponseCallBack() {
             @Override
             public void onSuccess(final String response){
                 showSnackBar(getString(R.string.removed_project));
             }
+
+            @Override
+            public void onError(final String errorMessage) {
+                showSnackBar(errorMessage);
+            }
+        });
+    }
+
+    private void updateProjectOrder(final Project fromProject, final Project toProject) {
+        final ProjectListService projectListService = new ProjectListService(getString(R.string.base_url), token);
+
+        projectListService.updateOrder(fromProject, new AuthenticationService.ApiResponseCallBack() {
+            @Override
+            public void onSuccess(final String responseBody) {}
+
+            @Override
+            public void onError(final String errorMessage) {
+                showSnackBar(errorMessage);
+            }
+        });
+        projectListService.updateOrder(toProject, new AuthenticationService.ApiResponseCallBack() {
+            @Override
+            public void onSuccess(final String responseBody) {}
 
             @Override
             public void onError(final String errorMessage) {
@@ -213,27 +259,25 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
 
         intent.putExtra(getString(R.string.project_id), project.getId());
         intent.putExtra(getString(R.string.project_name), project.getName());
+        intent.putExtra(getString(R.string.token), token);
         startActivity(intent);
     }
 
     @SuppressLint("NotifyDataSetChanged")
     @Override
     public void addProjectList() {
-        final String text = editText.getText().toString().trim();
+        final String text = projectNameEditText.getText().toString().trim();
 
         if (!text.isEmpty()) {
             final Project project = new Project();
 
-//            project.setId(++id);
             project.setName(text);
-            project.setDescription("Description");
-//            project.setUserId(userId);
+            project.setDescription(getString(R.string.Description));
 //            project.setOrder((long) (projectAdapter.getItemCount() + 1));
             projectList.add(project);
-//            projectDao.insert(project);
-            final AuthenticationService authenticationService = new AuthenticationService("http://192.168.1.3:8080/", token);
+            final ProjectListService projectListService = new ProjectListService(getString(R.string.base_url), token);
 
-            authenticationService.createProject(project, new AuthenticationService.ApiResponseCallBack() {
+            projectListService.create(project, new AuthenticationService.ApiResponseCallBack() {
                 @Override
                 public void onSuccess(final String response) {
                     showSnackBar(getString(R.string.project_created));
@@ -247,7 +291,7 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
                 }
             });
             projectAdapter.notifyDataSetChanged();
-            editText.getText().clear();
+            projectNameEditText.getText().clear();
         }
     }
 
@@ -262,9 +306,9 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
     }
 
     public void toggleEditTextVisibility() {
-        int visibility = editText.getVisibility() == View.GONE ? View.VISIBLE : View.GONE;
-        editText.setVisibility(visibility);
-        addButton.setVisibility(visibility);
+        int visibility = projectNameEditText.getVisibility() == View.GONE ? View.VISIBLE : View.GONE;
+        projectNameEditText.setVisibility(visibility);
+        addProjectButton.setVisibility(visibility);
     }
 
     @Override
@@ -277,29 +321,10 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
             userId = data.getLongExtra(getString(R.string.user_id), 0L);
             userProfile.setUserName(data.getStringExtra(getString(R.string.user)));
             userProfile.setTitle(data.getStringExtra(getString(R.string.user_title)));
-            userName.setText(userProfile.getUserName());
-            userTitle.setText(userProfile.getTitle());
-            profileIcon.setText(userProfile.getProfileIcon());
+            userNameTextView.setText(userProfile.getUserName());
+            userTitleTextView.setText(userProfile.getTitle());
+            profileIconTextView.setText(userProfile.getProfileIcon());
         }
-    }
-
-    private void loadProjectsFromDB() {
-        projects = projectDao.getAllProjects();
-
-        projectAdapter.clearProjects();
-        projectAdapter.addProjects(projects);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        projectDao.open();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        projectDao.close();
     }
 
     private void applyColorToComponent() {

@@ -37,7 +37,6 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
     private SearchController searchController;
     private TodoList todoList;
     private ImageView backButton;
-    private String selectedList;
     private SearchView searchView;
     private Spinner spinner;
     private Spinner filterSpinner;
@@ -66,7 +65,7 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
 
     private void initializeData() {
         projectId = getIntent().getLongExtra(getString(R.string.project_id), 0L);
-        selectedList = getIntent().getStringExtra(getString(R.string.search_view));
+        final String selectedList = getIntent().getStringExtra(getString(R.string.search_view));
         todoList = new TodoList();
         todoItems = todoList.getAllList();
         query = todoList.getQuery();
@@ -78,7 +77,7 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
     }
 
     private void initializeViews() {
-        searchController = new SearchController(this,this);
+        searchController = new SearchController(this);
         itemDao = new ItemDaoImpl(this);
         backButton = findViewById(R.id.backButton1);
         searchView = findViewById(R.id.searchbar);
@@ -107,7 +106,7 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
         final RecyclerView recyclerView = findViewById(R.id.recyclerViewList);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        todoAdapter = new TodoAdapter(todoItems, itemDao);
+        todoAdapter = new TodoAdapter(todoItems);
 
         recyclerView.setAdapter(todoAdapter);
         final ItemTouchHelper.Callback callback = new ItemTouchHelperCallBack(todoAdapter);
@@ -137,11 +136,16 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
                 if (-1 != position) {
                     final com.example.todo.model.Todo removedItem = todoItems.remove(position);
 
-                    todoList.remove(todo.getId());
-                    itemDao.onDelete(removedItem.getId());
+                    todoList.remove(Long.valueOf(todo.getId()));
+                    itemDao.onDelete(Long.valueOf(removedItem.getId()));
                     todoAdapter.notifyItemRemoved(position);
                     updatePageNumber();
                 }
+            }
+
+            @Override
+            public void onItemOrderUpdateListener(Todo fromItem, Todo toItem) {
+
             }
         });
     }
@@ -176,7 +180,7 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
 
         for (final Todo todo : todoList.getAllList()) {
 
-            if (todo.getLabel().toLowerCase().contains(newText.toLowerCase())) {
+            if (todo.getName().toLowerCase().contains(newText.toLowerCase())) {
                 searchAllItems.add(todo);
             }
         }
