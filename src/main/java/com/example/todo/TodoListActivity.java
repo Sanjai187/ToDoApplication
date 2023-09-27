@@ -21,8 +21,7 @@ import android.widget.TextView;
 import com.example.todo.api.AuthenticationService;
 import com.example.todo.api.TodoItemService;
 import com.example.todo.controller.TodoController;
-import com.example.todo.dao.ItemDao;
-import com.example.todo.dao.impl.ItemDaoImpl;
+import com.example.todo.model.Project;
 import com.example.todo.model.Todo;
 import com.example.todo.model.TodoList;
 import com.example.todo.service.TodoService;
@@ -36,7 +35,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -54,14 +52,12 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
     private ImageView previous;
     private ImageView next;
     private Spinner filterSpinner;
-    private String selectedList;
     private String projectId;
-    private Long id = 0L;
-    private List<com.example.todo.model.Todo> todoItems;
+    private String selectedList;
+    private List<Todo> todoItems;
     private int currentPage = 1;
     private TextView pageNumber;
-    private int pageSize = 5;
-    private ItemDao itemDao;
+    private int pageSize;
     private String token;
 
     @Override
@@ -71,12 +67,12 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
 
         initializeData();
         initializeViews();
-        initializeListeners();
+        initRecyclerView();
     }
 
     private void initializeData() {
-        projectId = getIntent().getStringExtra(getString(R.string.project_id));
         selectedList = getIntent().getStringExtra(getString(R.string.project_name));
+        projectId = getIntent().getStringExtra(getString(R.string.project_id));
         token = getIntent().getStringExtra(getString(R.string.token));
 
         todoList = new TodoList();
@@ -91,8 +87,6 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
 
     private void initializeViews() {
         todoController = new TodoController(this);
-        itemDao = new ItemDaoImpl(this);
-        todoItems = todoList.getAllList();
         backButton = findViewById(R.id.backButton1);
         search = findViewById(R.id.search);
         addList = findViewById(R.id.addButton);
@@ -105,14 +99,7 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
         next = findViewById(R.id.next_page);
     }
 
-    private void initializeListeners() {
-        backButton = findViewById(R.id.backButton1);
-        addButton = findViewById(R.id.button);
-        search = findViewById(R.id.search);
-        addList = findViewById(R.id.addButton);
-        previous = findViewById(R.id.prev_page);
-        next = findViewById(R.id.next_page);
-
+    private void initRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         todoAdapter = new TodoAdapter(todoItems);
 
@@ -121,7 +108,7 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
         final ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
 
         touchHelper.attachToRecyclerView(recyclerView);
-        loadTodoItemsFromDataBase();
+        loadTodoItemsFromDB();
         backButton.setOnClickListener(view -> onBackPressed());
         addButton.setOnClickListener(view -> todoController.onAddItem());
         search.setOnClickListener(view -> todoController.goToSearchActivity());
@@ -132,15 +119,7 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
         todoAdapter.setOnClickListener(new OnItemClickListener() {
             @Override
             public void onCheckBoxClick(final Todo todo) {
-//                final int position = todoItems.indexOf(todo);
-//
-//                if (-1 != position) {
-//                    final Todo updatedItem = todoItems.get(position);
-//
-//                    updatedItem.setStatus(updatedItem.getStatus() == Todo.Status.COMPLETED ? Todo.Status.NOT_COMPLETED : Todo.Status.COMPLETED);
-//                }
-//                itemDao.onUpdateStatus(todo);
-//                todoAdapter.notifyItemChanged(position);
+                updateItemStatus(todo);
             }
 
             @SuppressLint("NotifyDataSetChanged")
@@ -169,24 +148,6 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
         applyColorToComponent();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        itemDao.open();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        if (null != todoItems) {
-            for (final Todo todo : todoItems) {
-                itemDao.onUpdateStatus(todo);
-            }
-        }
-        itemDao.close();
-    }
-
     /**
      * <p>
      * Add a new item to the todo list
@@ -200,20 +161,22 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
             final Todo todo = new Todo(text);
 
             todo.setParentId(projectId);
+            todo.setName(text);
             todo.setStatus(Todo.Status.NOT_COMPLETED);
             todo.setOrder((long) (todoAdapter.getItemCount() + 1));
-            final TodoItemService itemService = new TodoItemService(getString(R.string.base_url), token);
+            final TodoItemService todoItemService = new TodoItemService(getString(R.string.base_url), token);
 
-            itemService.create(todo.getName(), projectId, new AuthenticationService.ApiResponseCallBack() {
-                @SuppressLint("NotifyDataSetChanged")
+            todoItemService.create(todo.getName(), projectId, new AuthenticationService.ApiResponseCallBack() {
                 @Override
                 public void onSuccess(final String responseBody) {
                     showSnackBar(getString(R.string.todo_item_created));
                     todoList.add(todo);
                     todoItems = todoList.getAllList();
 
-//                    todoAdapter.clearProjects();
-                    todoAdapter.addProjects(todoItems);
+                    pageNumber.setVisibility(View.VISIBLE);
+                    previous.setVisibility(View.VISIBLE);
+                    next.setVisibility(View.VISIBLE);
+                    todoAdapter.addTodoItem(todoItems);
                 }
 
                 @Override
@@ -221,61 +184,25 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
                     showSnackBar(errorMessage);
                 }
             });
-//            updateRecyclerView();
+            updateRecyclerView();
             updatePageNumber();
             editText.getText().clear();
         }
     }
 
-    private void updateItemOrder(final Todo fromItem, final Todo toItem) {
-        final TodoItemService itemService = new TodoItemService(getString(R.string.base_url), token);
+    private void loadTodoItemsFromDB() {
+        final TodoItemService todoItemService = new TodoItemService(getString(R.string.base_url), token);
 
-        itemService.updateOrder(fromItem, new AuthenticationService.ApiResponseCallBack() {
-            @Override
-            public void onSuccess(final String responseBody) {}
-
-            @Override
-            public void onError(final String errorMessage) {
-                showSnackBar(errorMessage);
-            }
-        });
-        itemService.updateOrder(toItem, new AuthenticationService.ApiResponseCallBack() {
-            @Override
-            public void onSuccess(String responseBody) {}
-
-            @Override
-            public void onError(String errorMessage) {
-                showSnackBar(errorMessage);
-            }
-        });
-    }
-
-    private void removeTodoItem(final Todo todoItem) {
-        final TodoItemService itemService = new TodoItemService(getString(R.string.base_url), token);
-
-        itemService.delete(todoItem.getId(), new AuthenticationService.ApiResponseCallBack() {
-            @Override
-            public void onSuccess(String responseBody) {
-                showSnackBar(getString(R.string.removed_project));
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-                showSnackBar(errorMessage);
-            }
-        });
-    }
-
-    private void loadTodoItemsFromDataBase() {
-        final TodoItemService itemService = new TodoItemService(getString(R.string.base_url), token);
-
-        itemService.getAll(new AuthenticationService.ApiResponseCallBack() {
+        todoItemService.getAll(new AuthenticationService.ApiResponseCallBack() {
+            @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onSuccess(final String responseBody) {
-                todoItems = parseItemsFromJson(responseBody);
+                todoItems = todoItemsFromDB(responseBody);
+
                 if (! todoItems.isEmpty()) {
                     todoList.setAllItems(todoItems);
                     updateRecyclerView();
+                    todoAdapter.notifyDataSetChanged();
                     updatePageNumber();
                 } else {
                     pageNumber.setVisibility(View.GONE);
@@ -291,47 +218,84 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
         });
     }
 
-    private List<Todo> parseItemsFromJson(final String responseBody) {
-        final List<Todo> todoItemList = new ArrayList<>();
+    private List<Todo> todoItemsFromDB(final String responseBody) {
+        final List<Todo> todoList = new ArrayList<>();
 
         try {
             final JSONObject responseJson = new JSONObject(responseBody);
             final JSONArray data = responseJson.getJSONArray(getString(R.string.data));
 
             for (int i = 0; i < data.length(); i++) {
-                final JSONObject projectJson = data.getJSONObject(i);
+                final JSONObject jsonObject = data.getJSONObject(i);
 
-                if (projectId.equals(projectJson.getString(getString(R.string.id)))) {
-                    final Todo todoItem = new Todo(projectJson.getString(
-                            getString(R.string.Name)));
+                if (null != projectId && projectId.equals(jsonObject.getString(getString(R.string.project_id)))) {
+                    final Todo todoItem = new Todo(jsonObject.getString(getString(R.string.Name)));
 
-                    todoItem.setId(projectJson.getString(getString(R.string.id)));
+                    todoItem.setId(jsonObject.getString(getString(R.string.id)));
                     todoItem.setParentId(projectId);
-                    todoItem.setOrder((long) projectJson.getInt(getString(R.string.sort_order)));
-                    todoItemList.add(todoItem);
+                    todoItem.setOrder((long) jsonObject.getInt(getString(R.string.sort_order)));
+                    todoList.add(todoItem);
                 }
             }
-            Collections.sort(todoItemList, new Comparator<Todo>() {
-                @Override
-                public int compare(final Todo item1, final Todo item2) {
-                    return Long.compare(item1.getOrder(), item2.getOrder());
-                }
-            });
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
+            todoList.sort(Comparator.comparingLong(Todo::getOrder));
+        } catch (JSONException exception) {
+            throw new RuntimeException(exception);
         }
 
-        return todoItemList;
+        return todoList;
     }
 
-    @SuppressLint("ResourceAsColor")
-    private void showSnackBar(final String message) {
-        final View view = findViewById(android.R.id.content);
-        final Snackbar snackbar = Snackbar.make(view, message, Snackbar.LENGTH_SHORT);
+    private void updateItemOrder(final Todo fromItem, final Todo toItem) {
+        final TodoItemService todoItemService = new TodoItemService(getString(R.string.base_url), token);
 
-        snackbar.setTextColor(getResources().getColor(R.color.black));
-        snackbar.setBackgroundTint(R.color.gray);
-        snackbar.show();
+        todoItemService.updateOrder(fromItem, new AuthenticationService.ApiResponseCallBack() {
+            @Override
+            public void onSuccess(final String responseBody) {}
+
+            @Override
+            public void onError(final String errorMessage) {
+                showSnackBar(errorMessage);
+            }
+        });
+        todoItemService.updateOrder(toItem, new AuthenticationService.ApiResponseCallBack() {
+            @Override
+            public void onSuccess(final String responseBody) {}
+
+            @Override
+            public void onError(final String errorMessage) {
+                showSnackBar(errorMessage);
+            }
+        });
+    }
+
+    private void updateItemStatus(final Todo todo) {
+        final TodoItemService todoItemService = new TodoItemService(getString(R.string.base_url), token);
+
+        todoItemService.updateStatus(todo, new AuthenticationService.ApiResponseCallBack() {
+            @Override
+            public void onSuccess(final String responseBody) {}
+
+            @Override
+            public void onError(final String errorMessage) {
+                showSnackBar(errorMessage);
+            }
+        });
+    }
+
+    private void removeTodoItem(final Todo todoItem) {
+        final TodoItemService todoItemService = new TodoItemService(getString(R.string.base_url), token);
+
+        todoItemService.delete(todoItem.getId(), new AuthenticationService.ApiResponseCallBack() {
+            @Override
+            public void onSuccess(final String responseBody) {
+                showSnackBar(getString(R.string.removed_project));
+            }
+
+            @Override
+            public void onError(final String errorMessage) {
+                showSnackBar(errorMessage);
+            }
+        });
     }
 
     @Override
@@ -348,7 +312,7 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
                 if (currentPage > getTotalPages) {
                     currentPage = getTotalPages;
                 }
-//                updateRecyclerView();
+                updateRecyclerView();
                 updatePageNumber();
             }
 
@@ -362,7 +326,9 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
     public void navigateToSearchActivity() {
         final Intent intent = new Intent(TodoListActivity.this, SearchActivity.class);
 
+        intent.putExtra(getString(R.string.project_id), projectId);
         intent.putExtra(getString(R.string.search_view), selectedList);
+        intent.putExtra(getString(R.string.token), token);
         startActivity(intent);
     }
 
@@ -378,7 +344,8 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
     public void navigateToNextPage() {
         if ((currentPage * pageSize) < todoItems.size()) {
             currentPage++;
-            loadTodoItemsFromDataBase();
+            loadTodoItemsFromDB();
+            updateRecyclerView();
             updatePageNumber();
         }
     }
@@ -387,7 +354,8 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
     public void navigateToPreviousPage() {
         if (currentPage > 1) {
             currentPage--;
-            loadTodoItemsFromDataBase();
+            loadTodoItemsFromDB();
+            updateRecyclerView();
             updatePageNumber();
         }
     }
@@ -398,25 +366,22 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
         pageNumber.setText(String.format("%d / %d", currentPage, totalPage));
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private void updateRecyclerView() {
         final int startIndex = (currentPage - 1) * pageSize;
         final int endIndex = Math.min(startIndex + pageSize, todoItems.size());
         final List<Todo> pageItems = todoItems.subList(startIndex, endIndex);
 
         todoAdapter.updateTodoItems(pageItems);
-//        todoAdapter.clearProjects();
-//        todoAdapter.addProjects(pageItems);
+        todoAdapter.notifyDataSetChanged();
     }
 
-//    private void loadTodoItemsFromDatabase(final String selectedProjectId) {
-//        todoItems = itemDao.getTodoItems(selectedProjectId);
-//
-//        if (null != todoItems) {
-//            todoAdapter.clearProjects();
-//            todoAdapter.addProjects(todoItems);
-//        }
-//        todoAdapter.updateTodoItems(todoItems);
-//    }
+    private void showSnackBar(final String message) {
+        final View view = findViewById(android.R.id.content);
+        final Snackbar snackbar = Snackbar.make(view, message, Snackbar.LENGTH_SHORT);
+
+        snackbar.show();
+    }
 
     private void applyColorToComponent() {
         final int defaultColor = TypeFaceUtil.getSelectedDefaultColor();

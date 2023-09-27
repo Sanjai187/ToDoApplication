@@ -32,8 +32,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder> {
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull final ViewGroup parent, final int viewType) {
-        final View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.todo_item_layout, parent, false);
+        final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.todo_item_layout, parent, false);
 
         return new ViewHolder(view);
     }
@@ -75,7 +74,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder> {
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    public void updateTodoItems(List<Todo> updatedItems) {
+    public void updateTodoItems(final List<Todo> updatedItems) {
         this.todoList = updatedItems;
         notifyDataSetChanged();
     }
@@ -87,9 +86,8 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder> {
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    public void addProjects(final List<Todo> newProjects) {
-        todoList.clear();
-        todoList.addAll(newProjects);
+    public void addTodoItem(final List<Todo> newProjects) {
+        this.todoList = newProjects;
         notifyDataSetChanged();
     }
 
@@ -111,25 +109,20 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder> {
                     final Todo todoItem = todoList.get(position);
 
                     todoItem.setChecked();
-                    todoItem.setStatus(isChecked ? Todo.Status.COMPLETED
-                            : Todo.Status.NOT_COMPLETED);
-                    todoTextView.setTextColor(todoItem.getStatus() == Todo.Status.COMPLETED
-                            ? Color.GRAY : Color.BLACK);
+                    todoItem.setStatus(isChecked ? Todo.Status.COMPLETED : Todo.Status.NOT_COMPLETED);
+                    todoTextView.setTextColor(todoItem.getStatus() == Todo.Status.COMPLETED ? Color.GRAY : Color.BLACK);
                     onItemClickListener.onCheckBoxClick(todoItem);
                 }
             });
-            todoRemoveButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    final int position = getAdapterPosition();
+            todoRemoveButton.setOnClickListener(v -> {
+                final int position = getAdapterPosition();
 
-                    if (position != RecyclerView.NO_POSITION) {
-                        final Todo todoItem = todoList.get(position);
+                if (position != RecyclerView.NO_POSITION) {
+                    final Todo todoItem = todoList.get(position);
 
-                        todoList.remove(todoItem);
-                        notifyItemRemoved(position);
-                        onItemClickListener.onCloseIconClick(todoItem);
-                    }
+                    todoList.remove(todoItem);
+                    notifyItemRemoved(position);
+                    onItemClickListener.onCloseIconClick(todoItem);
                 }
             });
         }

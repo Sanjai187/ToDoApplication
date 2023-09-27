@@ -62,7 +62,7 @@ public class SignInActivity extends AppCompatActivity {
                     || TextUtils.isEmpty(credential.getPassword())) {
                 showSnackBar(getString(R.string.fields_fill));
             } else {
-                authenticationService = new AuthenticationService("http://192.168.1.3:8080/");
+                authenticationService = new AuthenticationService(getString(R.string.base_url));
 
                 authenticationService.signIn(credential, new AuthenticationService.ApiResponseCallBack() {
                     @Override
@@ -105,13 +105,10 @@ public class SignInActivity extends AppCompatActivity {
         userPassword.setSelection(userPassword.getText().length());
     }
 
-    @SuppressLint("ResourceAsColor")
     private void showSnackBar(final String message) {
         final View view = findViewById(android.R.id.content);
-        final Snackbar snackbar = Snackbar.make(view, message, Snackbar.LENGTH_LONG);
+        final Snackbar snackbar = Snackbar.make(view, message, Snackbar.LENGTH_SHORT);
 
-        snackbar.setTextColor(getResources().getColor(R.color.black));
-        snackbar.setBackgroundTint(R.color.white);
         snackbar.show();
     }
 }

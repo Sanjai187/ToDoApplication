@@ -53,16 +53,10 @@ public class PasswordResetActivity extends AppCompatActivity {
         final Button cancel = findViewById(R.id.cancelToCreatePassword);
         final Button resetPassword = findViewById(R.id.resetPassword);
 
-        cancel.setOnClickListener(view -> navigateToSignIn());
+        cancel.setOnClickListener(view -> onBackPressed());
         newPasswordVisibilityToggle.setOnClickListener(view -> togglePasswordVisibility(newPasswordEditText, newPasswordVisibilityToggle));
         confirmPasswordVisibilityToggle.setOnClickListener(view -> togglePasswordVisibility(confirmPasswordEditText, confirmPasswordVisibilityToggle));
         resetPassword.setOnClickListener(view -> attemptPasswordReset());
-    }
-
-    private void navigateToSignIn() {
-        final Intent intent = new Intent(PasswordResetActivity.this, SignInActivity.class);
-
-        startActivity(intent);
     }
 
     private void togglePasswordVisibility(final EditText passwordField, final ImageView visibilityToggle) {
@@ -81,17 +75,17 @@ public class PasswordResetActivity extends AppCompatActivity {
     private void attemptPasswordReset() {
         final Credential credential = createCredential();
         if (credential != null) {
-            authService = new AuthenticationService("http://192.168.1.3:8080/");
+            authService = new AuthenticationService(getString(R.string.base_url));
             authService.resetPassword(credential, newHintEditText.getText().toString().trim(),
                     new AuthenticationService.ApiResponseCallBack() {
                         @Override
                         public void onSuccess(final String response) {
-                            showSnackbar(getString(R.string.password_updated));
+                            showSnackBar(getString(R.string.password_updated));
                         }
 
                         @Override
                         public void onError(final String errorMessage) {
-                            showSnackbar(String.format(getString(R.string.request_failed_s), errorMessage));
+                            showSnackBar(String.format(getString(R.string.request_failed_s), errorMessage));
                         }
                     });
             finish();
@@ -105,10 +99,10 @@ public class PasswordResetActivity extends AppCompatActivity {
 
         if (TextUtils.isEmpty(email) || TextUtils.isEmpty(newPassword) || TextUtils.isEmpty(oldHint)
                 || TextUtils.isEmpty(newHintEditText.getText().toString().trim())) {
-            showSnackbar(getString(R.string.fields_fill));
+            showSnackBar(getString(R.string.fields_fill));
             return null;
         } else if (!newPassword.equals(confirmPasswordEditText.getText().toString().trim())) {
-            showSnackbar(getString(R.string.password_mismatch));
+            showSnackBar(getString(R.string.password_mismatch));
             return null;
         }
 
@@ -119,12 +113,10 @@ public class PasswordResetActivity extends AppCompatActivity {
         return credential;
     }
 
-    private void showSnackbar(final String message) {
-        final View parentLayout = findViewById(android.R.id.content);
-        final int backgroundColor = Color.argb(200, 255, 255, 255);
-        final Snackbar snackbar = Snackbar.make(parentLayout, message, Snackbar.LENGTH_LONG);
-        snackbar.setTextColor(getResources().getColor(R.color.black));
-        snackbar.setBackgroundTint(backgroundColor);
+    private void showSnackBar(final String message) {
+        final View view = findViewById(android.R.id.content);
+        final Snackbar snackbar = Snackbar.make(view, message, Snackbar.LENGTH_SHORT);
+
         snackbar.show();
     }
 }
