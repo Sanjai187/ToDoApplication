@@ -72,6 +72,25 @@ public class AuthenticationService {
         executeRequest(responseBodyCall, apiResponseCallBack);
     }
 
+    public void updateUserDetail(final UserProfile userProfile, final ApiResponseCallBack callBack) {
+        final Call<ResponseBody> call = apiService.updateUserDetail(userProfile);
+
+        executeRequest(call, callBack);
+    }
+
+    public void getSystemSetting(final ApiResponseCallBack callBack) {
+        final Call<ResponseBody> call = apiService.getSystemSetting();
+
+        executeRequest(call, callBack);
+    }
+
+    public void updateSystemSetting(final String fontFamily, final int fontSize, final String color,
+                                    final ApiResponseCallBack callBack) {
+        final Call<ResponseBody> call = apiService.updateSystemSetting(fontFamily, fontSize, color);
+
+        executeRequest(call, callBack);
+    }
+
     private void executeRequest(final Call<ResponseBody> responseBodyCall, final AuthenticationService.ApiResponseCallBack apiResponseCallBack) {
         responseBodyCall.enqueue(new Callback<ResponseBody>() {
 

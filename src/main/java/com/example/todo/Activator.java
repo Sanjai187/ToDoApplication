@@ -61,6 +61,7 @@ public class Activator extends AppCompatActivity implements ActivatorService{
     public void navigateToSettings() {
         final Intent intent = new Intent(Activator.this, SettingActivity.class);
 
+        intent.putExtra(getString(R.string.token), token);
         startActivity(intent);
     }
 
@@ -68,12 +69,12 @@ public class Activator extends AppCompatActivity implements ActivatorService{
         final int defaultColor = TypeFaceUtil.getSelectedDefaultColor();
         final RelativeLayout layout = findViewById(R.id.relativeLayout);
 
-        if (defaultColor == R.color.Violet) {
-            layout.setBackgroundColor(getResources().getColor(R.color.Violet));
+        if (defaultColor == R.color.green) {
+            layout.setBackgroundColor(getResources().getColor(R.color.green));
         } else if (defaultColor == R.color.blue) {
             layout.setBackgroundColor(getResources().getColor(R.color.blue));
-        } else if (defaultColor == R.color.green) {
-            layout.setBackgroundColor(getResources().getColor(R.color.green));
+        } else if (defaultColor == R.color.Violet) {
+            layout.setBackgroundColor(getResources().getColor(R.color.Violet));
         }
     }
 }

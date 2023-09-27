@@ -81,7 +81,7 @@ public class SignUpActivity extends AppCompatActivity {
             } else if (! password.equals(credential.getPassword())) {
                 showSnackBar(getString(R.string.password_mismatch));
             }
-            authenticationService = new AuthenticationService("http://192.168.1.3:8080/");
+            authenticationService = new AuthenticationService(getString(R.string.base_url));
 
             authenticationService.signUp(userProfile, credential, new AuthenticationService.ApiResponseCallBack() {
                 @Override
@@ -113,13 +113,10 @@ public class SignUpActivity extends AppCompatActivity {
         password.setSelection(password.getText().length());
     }
 
-    @SuppressLint("ResourceAsColor")
     private void showSnackBar(final String message) {
         final View view = findViewById(android.R.id.content);
         final Snackbar snackbar = Snackbar.make(view, message, Snackbar.LENGTH_SHORT);
 
-        snackbar.setTextColor(getResources().getColor(R.color.black));
-        snackbar.setBackgroundTint(R.color.gray);
         snackbar.show();
     }
 

@@ -33,7 +33,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -47,7 +46,6 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
     private TextView userNameTextView;
     private TextView userTitleTextView;
     private Button addProjectButton;
-    private Long userId;
     private EditText projectNameEditText;
     private ProjectList projectList;
     private ProjectDao projectDao;
@@ -90,8 +88,7 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
         editButton.setOnClickListener(view -> {
             final Intent intent = new Intent(NavigationActivity.this, UserProfileActivity.class);
 
-            intent.putExtra(getString(R.string.user), userNameTextView.getText().toString());
-            intent.putExtra(getString(R.string.user_title), userTitleTextView.getText().toString());
+            intent.putExtra(getString(R.string.token), token);
             startActivityIfNeeded(intent, REQUEST_CODE);
         });
         TypeFaceUtil.applyFontToView(getWindow().getDecorView().findViewById(android.R.id.content));
@@ -127,6 +124,38 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
         });
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    @Override
+    public void addProjectList() {
+        final String text = projectNameEditText.getText().toString().trim();
+
+        if (!text.isEmpty()) {
+            final Project project = new Project();
+
+            project.setName(text);
+            project.setDescription(getString(R.string.Description));
+//            project.setOrder((long) (projectAdapter.getItemCount() + 1));
+            projectList.add(project);
+            final ProjectListService projectListService = new ProjectListService(getString(R.string.base_url), token);
+
+            projectListService.create(project, new AuthenticationService.ApiResponseCallBack() {
+                @Override
+                public void onSuccess(final String response) {
+                    showSnackBar(getString(R.string.project_created));
+
+                    projectAdapter.notifyDataSetChanged();
+                }
+
+                @Override
+                public void onError(final String errorMessage) {
+                    showSnackBar(String.format(getString(R.string.request_failed_s), errorMessage));
+                }
+            });
+            projectAdapter.notifyDataSetChanged();
+            projectNameEditText.getText().clear();
+        }
+    }
+
     private void getUserDetails() {
         final AuthenticationService authenticationService = new AuthenticationService(getString(R.string.base_url), token);
 
@@ -158,11 +187,10 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     private void loadProjectFromDB(){
-        final ProjectListService projectListService = new ProjectListService("http://192.168.1.3:8080/", token);
+        final ProjectListService projectListService = new ProjectListService(getString(R.string.base_url), token);
 
         projectListService.getAll(new AuthenticationService.ApiResponseCallBack() {
             @SuppressLint("NotifyDataSetChanged")
@@ -190,11 +218,9 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
 
             for (int i = 0; i < data.length(); i++) {
                 final JSONObject jsonObjects = data.getJSONObject(i);
-                final JSONObject additionalAttributes = jsonObjects.getJSONObject(
-                        getString(R.string.additional_attributes));
+                final JSONObject additionalAttributes = jsonObjects.getJSONObject(getString(R.string.additional_attributes));
 
-                if (userProfile.getId().equals(additionalAttributes
-                        .getString(getString(R.string.created_by)))) {
+                if (userProfile.getId().equals(additionalAttributes.getString(getString(R.string.created_by)))) {
                     final Project project = new Project();
 
                     project.setId(jsonObjects.getString(getString(R.string.id)));
@@ -203,12 +229,7 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
                     projects.add(project);
                 }
             }
-            Collections.sort(projects, new Comparator<Project>() {
-                @Override
-                public int compare(final Project project1, final Project project2) {
-                    return Long.compare(project1.getOrder(), project2.getOrder());
-                }
-            });
+            projects.sort(Comparator.comparingLong(Project::getOrder));
         } catch (JSONException exception) {
             throw new RuntimeException(exception);
         }
@@ -216,7 +237,7 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
     }
 
     private void removeProject(final Project project) {
-        final ProjectListService projectListService = new ProjectListService("http://192.168.1.3:8080/", token);
+        final ProjectListService projectListService = new ProjectListService(getString(R.string.base_url), token);
 
         projectListService.delete(project.getId(), new AuthenticationService.ApiResponseCallBack() {
             @Override
@@ -263,48 +284,6 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
         startActivity(intent);
     }
 
-    @SuppressLint("NotifyDataSetChanged")
-    @Override
-    public void addProjectList() {
-        final String text = projectNameEditText.getText().toString().trim();
-
-        if (!text.isEmpty()) {
-            final Project project = new Project();
-
-            project.setName(text);
-            project.setDescription(getString(R.string.Description));
-//            project.setOrder((long) (projectAdapter.getItemCount() + 1));
-            projectList.add(project);
-            final ProjectListService projectListService = new ProjectListService(getString(R.string.base_url), token);
-
-            projectListService.create(project, new AuthenticationService.ApiResponseCallBack() {
-                @Override
-                public void onSuccess(final String response) {
-                    showSnackBar(getString(R.string.project_created));
-
-                    projectAdapter.notifyDataSetChanged();
-                }
-
-                @Override
-                public void onError(final String errorMessage) {
-                    showSnackBar(String.format(getString(R.string.request_failed_s), errorMessage));
-                }
-            });
-            projectAdapter.notifyDataSetChanged();
-            projectNameEditText.getText().clear();
-        }
-    }
-
-    @SuppressLint("ResourceAsColor")
-    private void showSnackBar(final String message) {
-        final View view = findViewById(android.R.id.content);
-        final Snackbar snackbar = Snackbar.make(view, message, Snackbar.LENGTH_SHORT);
-
-        snackbar.setTextColor(getResources().getColor(R.color.black));
-        snackbar.setBackgroundTint(R.color.gray);
-        snackbar.show();
-    }
-
     public void toggleEditTextVisibility() {
         int visibility = projectNameEditText.getVisibility() == View.GONE ? View.VISIBLE : View.GONE;
         projectNameEditText.setVisibility(visibility);
@@ -318,7 +297,6 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
         if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
             final UserProfile userProfile = new UserProfile();
 
-            userId = data.getLongExtra(getString(R.string.user_id), 0L);
             userProfile.setUserName(data.getStringExtra(getString(R.string.user)));
             userProfile.setTitle(data.getStringExtra(getString(R.string.user_title)));
             userNameTextView.setText(userProfile.getUserName());
@@ -327,20 +305,23 @@ public class NavigationActivity extends AppCompatActivity implements NavigationS
         }
     }
 
+    private void showSnackBar(final String message) {
+        final View view = findViewById(android.R.id.content);
+        final Snackbar snackbar = Snackbar.make(view, message, Snackbar.LENGTH_SHORT);
+
+        snackbar.show();
+    }
+
     private void applyColorToComponent() {
         final int defaultColor = TypeFaceUtil.getSelectedDefaultColor();
         final RelativeLayout relativeLayout = findViewById(R.id.profileView);
-        final RelativeLayout relativeLayout1 = findViewById(R.id.relativeLayout);
 
         if (defaultColor == R.color.green) {
             relativeLayout.setBackgroundColor(getResources().getColor(R.color.green));
-            relativeLayout1.setBackgroundColor(getResources().getColor(R.color.green));
         } else if (defaultColor == R.color.blue) {
             relativeLayout.setBackgroundColor(getResources().getColor(R.color.blue));
-            relativeLayout1.setBackgroundColor(getResources().getColor(R.color.blue));
         } else if (defaultColor == R.color.Violet) {
             relativeLayout.setBackgroundColor(getResources().getColor(R.color.Violet));
-            relativeLayout1.setBackgroundColor(getResources().getColor(R.color.Violet));
         }
     }
 }

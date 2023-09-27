@@ -60,6 +60,15 @@ public class TodoItemService {
         executeRequest(call, callBack);
     }
 
+    public void updateStatus(final Todo todo,
+                             final AuthenticationService.ApiResponseCallBack callBack) {
+        final boolean isCompleted = todo.getStatus() == Todo.Status.COMPLETED;
+        final Call<ResponseBody> call = apiService.updateStatus(todo.getId(), isCompleted,
+                todo.getParentId());
+
+        executeRequest(call, callBack);
+    }
+
     private void executeRequest(final Call<ResponseBody> responseBodyCall, final AuthenticationService.ApiResponseCallBack apiResponseCallBack) {
         responseBodyCall.enqueue(new Callback<ResponseBody>() {
 

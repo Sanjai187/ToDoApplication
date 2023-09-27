@@ -20,7 +20,7 @@
             <RelativeLayout
                 android:id="@+id/profileView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="160dp"
                 android:padding="20dp">
 
                 <ImageView
@@ -87,14 +87,13 @@
         <LinearLayout
             android:layout_width="285dp"
             android:layout_height="25dp"
-            android:layout_marginTop="10dp"
             android:background="@color/white">
 
             <TextView
                 android:layout_width="285dp"
                 android:layout_height="match_parent"
                 android:text="@string/project_list"
-                android:textSize="20sp"
+                android:textSize="22sp"
                 android:layout_gravity="center"
                 android:textColor="@color/black"
                 android:textStyle="bold"
@@ -147,8 +146,7 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="15dp"
-                android:outlineSpotShadowColor="@color/black">
+                android:padding="10dp">
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/nameListView"
