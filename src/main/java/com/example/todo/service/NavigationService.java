@@ -4,7 +4,7 @@ import com.example.todo.model.Project;
 
 public interface NavigationService {
 
-    void goToListPage(final Project project);
+    void startTodoActivity(final Project project);
 
     void addProjectList();
 

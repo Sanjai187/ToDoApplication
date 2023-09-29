@@ -17,10 +17,13 @@ public interface ProjectApiService {
 
     @POST("api/v1/project")
     Call<ResponseBody> create(@Body final Project project);
+
     @GET("api/v1/project")
     Call<ResponseBody> getAll();
+
     @DELETE("api/v1/project/{projectId}")
     Call<ResponseBody> delete(@Path("projectId") final String projectId);
+
     @FormUrlEncoded
     @PUT("api/v1/project/{projectId}")
     Call<ResponseBody> updateOrder(@Path("projectId") final String projectId,

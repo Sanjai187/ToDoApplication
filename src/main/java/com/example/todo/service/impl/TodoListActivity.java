@@ -1,9 +1,4 @@
-package com.example.todo;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+package com.example.todo.service.impl;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -18,10 +13,15 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.example.todo.api.AuthenticationService;
-import com.example.todo.api.TodoItemService;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.todo.R;
+import com.example.todo.api.impl.AuthenticationService;
+import com.example.todo.api.impl.TodoItemService;
 import com.example.todo.controller.TodoController;
-import com.example.todo.model.Project;
 import com.example.todo.model.Todo;
 import com.example.todo.model.TodoList;
 import com.example.todo.service.TodoService;
@@ -54,8 +54,8 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
     private Spinner filterSpinner;
     private String projectId;
     private String selectedList;
+    private  int currentPage = 1;
     private List<Todo> todoItems;
-    private int currentPage = 1;
     private TextView pageNumber;
     private int pageSize;
     private String token;
@@ -74,7 +74,6 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
         selectedList = getIntent().getStringExtra(getString(R.string.project_name));
         projectId = getIntent().getStringExtra(getString(R.string.project_id));
         token = getIntent().getStringExtra(getString(R.string.token));
-
         todoList = new TodoList();
         todoItems = todoList.getAllList();
 
@@ -95,8 +94,8 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
         editText = findViewById(R.id.editText);
         filterSpinner = findViewById(R.id.filter);
         pageNumber = findViewById(R.id.pageCount);
-        previous = findViewById(R.id.prev_page);
-        next = findViewById(R.id.next_page);
+        previous = findViewById(R.id.previous);
+        next = findViewById(R.id.next);
     }
 
     private void initRecyclerView() {
@@ -109,6 +108,7 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
 
         touchHelper.attachToRecyclerView(recyclerView);
         loadTodoItemsFromDB();
+        pageSize = Integer.parseInt(filterSpinner.getSelectedItem().toString());
         backButton.setOnClickListener(view -> onBackPressed());
         addButton.setOnClickListener(view -> todoController.onAddItem());
         search.setOnClickListener(view -> todoController.goToSearchActivity());
@@ -143,7 +143,7 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
                 updateItemOrder(fromItem, toItem);
             }
         });
-        TypeFaceUtil.applyFontToView(getWindow().getDecorView().findViewById(android.R.id.content));
+        TypeFaceUtil.applyTypefaceToView(getWindow().getDecorView().findViewById(android.R.id.content));
         TypeFaceUtil.applyTextSizeToView(getWindow().getDecorView().findViewById(android.R.id.content));
         applyColorToComponent();
     }
@@ -206,8 +206,8 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
                     updatePageNumber();
                 } else {
                     pageNumber.setVisibility(View.GONE);
-                    next.setVisibility(View.GONE);
                     previous.setVisibility(View.GONE);
+                    next.setVisibility(View.GONE);
                 }
             }
 
@@ -287,7 +287,7 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
 
         todoItemService.delete(todoItem.getId(), new AuthenticationService.ApiResponseCallBack() {
             @Override
-            public void onSuccess(final String responseBody) {
+            public void onSuccess(final String response) {
                 showSnackBar(getString(R.string.removed_project));
             }
 
@@ -323,7 +323,7 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
     }
 
     @Override
-    public void navigateToSearchActivity() {
+    public void startSearchActivity() {
         final Intent intent = new Intent(TodoListActivity.this, SearchActivity.class);
 
         intent.putExtra(getString(R.string.project_id), projectId);
@@ -363,22 +363,25 @@ public class TodoListActivity extends AppCompatActivity implements TodoService{
     @SuppressLint("DefaultLocale")
     private void updatePageNumber() {
         final int totalPage = (int) Math.ceil((double) todoItems.size() / pageSize);
+
         pageNumber.setText(String.format("%d / %d", currentPage, totalPage));
     }
 
     @SuppressLint("NotifyDataSetChanged")
     private void updateRecyclerView() {
-        final int startIndex = (currentPage - 1) * pageSize;
+        int startIndex = (currentPage - 1) * pageSize;
         final int endIndex = Math.min(startIndex + pageSize, todoItems.size());
-        final List<Todo> pageItems = todoItems.subList(startIndex, endIndex);
 
+        if (0 > startIndex) {
+            startIndex = 0;
+        }
+        final List<Todo> pageItems = todoItems.subList(startIndex, endIndex);
         todoAdapter.updateTodoItems(pageItems);
         todoAdapter.notifyDataSetChanged();
     }
 
     private void showSnackBar(final String message) {
-        final View view = findViewById(android.R.id.content);
-        final Snackbar snackbar = Snackbar.make(view, message, Snackbar.LENGTH_SHORT);
+        final Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_SHORT);
 
         snackbar.show();
     }

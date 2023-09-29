@@ -2,7 +2,7 @@ package com.example.todo.service;
 
 public interface ActivatorService {
 
-    void goToNavigation();
+    void startNavigationActivity();
 
-    void navigateToSettings();
+    void startSettingActivity();
 }

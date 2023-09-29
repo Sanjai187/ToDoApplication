@@ -6,7 +6,7 @@ public interface TodoService {
 
     void setupFilterSpinner();
 
-    void navigateToSearchActivity();
+    void startSearchActivity();
 
     void toggleAddListVisibility();
 

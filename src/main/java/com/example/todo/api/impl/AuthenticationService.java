@@ -1,7 +1,8 @@
-package com.example.todo.api;
+package com.example.todo.api.impl;
 
 import androidx.annotation.NonNull;
 
+import com.example.todo.api.ApiService;
 import com.example.todo.model.Credential;
 import com.example.todo.model.ResetPassword;
 import com.example.todo.model.SignUp;
@@ -46,20 +47,23 @@ public class AuthenticationService {
         apiService = retrofit.create(ApiService.class);
     }
 
-    public void signUp(final UserProfile userProfile, final Credential credential, final ApiResponseCallBack apiResponseCallBack) {
+    public void signUp(final UserProfile userProfile, final Credential credential,
+                       final ApiResponseCallBack apiResponseCallBack) {
         final SignUp signUp = new SignUp(userProfile, credential);
         final Call<ResponseBody> responseBodyCall = apiService.signUpRequest(signUp);
 
         executeRequest(responseBodyCall, apiResponseCallBack);
     }
 
-    public void signIn(final Credential credential, final ApiResponseCallBack apiResponseCallBack) {
+    public void signIn(final Credential credential,
+                       final ApiResponseCallBack apiResponseCallBack) {
         final Call<ResponseBody> responseBodyCall = apiService.singInRequest(credential);
 
         executeRequest(responseBodyCall, apiResponseCallBack);
     }
 
-    public void resetPassword(final Credential credential, final String newHint, final ApiResponseCallBack apiResponseCallBack) {
+    public void resetPassword(final Credential credential, final String newHint,
+                              final ApiResponseCallBack apiResponseCallBack) {
         final ResetPassword resetPassword = new ResetPassword(credential, newHint);
         final Call<ResponseBody> responseBodyCall = apiService.resetPasswordRequest(resetPassword);
 
@@ -72,40 +76,51 @@ public class AuthenticationService {
         executeRequest(responseBodyCall, apiResponseCallBack);
     }
 
-    public void updateUserDetail(final UserProfile userProfile, final ApiResponseCallBack callBack) {
-        final Call<ResponseBody> call = apiService.updateUserDetail(userProfile);
+    public void updateUserDetail(final UserProfile userProfile,
+                                 final ApiResponseCallBack apiResponseCallBack) {
+        final Call<ResponseBody> responseBodyCall = apiService.updateUserDetail(userProfile);
 
-        executeRequest(call, callBack);
+        executeRequest(responseBodyCall, apiResponseCallBack);
     }
 
-    public void getSystemSetting(final ApiResponseCallBack callBack) {
-        final Call<ResponseBody> call = apiService.getSystemSetting();
+    public void getSystemSetting(final ApiResponseCallBack apiResponseCallBack) {
+        final Call<ResponseBody> responseBodyCall = apiService.getSystemSetting();
 
-        executeRequest(call, callBack);
+        executeRequest(responseBodyCall, apiResponseCallBack);
     }
 
-    public void updateSystemSetting(final String fontFamily, final int fontSize, final String color,
-                                    final ApiResponseCallBack callBack) {
-        final Call<ResponseBody> call = apiService.updateSystemSetting(fontFamily, fontSize, color);
+    public void updateFontFamily(final String fontFamily,
+                                 final ApiResponseCallBack apiResponseCallBack) {
+        final Call<ResponseBody> responseBodyCall = apiService.updateFontFamily(fontFamily);
 
-        executeRequest(call, callBack);
+        executeRequest(responseBodyCall, apiResponseCallBack);
     }
 
-    private void executeRequest(final Call<ResponseBody> responseBodyCall, final AuthenticationService.ApiResponseCallBack apiResponseCallBack) {
+    public void updateFontSize(final int fontSize, final ApiResponseCallBack apiResponseCallBack) {
+        final Call<ResponseBody> responseBodyCall = apiService.updateFontSize(fontSize);
+
+        executeRequest(responseBodyCall, apiResponseCallBack);
+    }
+
+    public void updateColor(final String fontColor, final ApiResponseCallBack apiResponseCallBack) {
+        final Call<ResponseBody> responseBodyCall = apiService.updateColor(fontColor);
+
+        executeRequest(responseBodyCall, apiResponseCallBack);
+    }
+
+    private void executeRequest(final Call<ResponseBody> responseBodyCall,
+                                final ApiResponseCallBack apiResponseCallBack) {
         responseBodyCall.enqueue(new Callback<ResponseBody>() {
 
             @Override
-            public void onResponse(@NonNull final Call<ResponseBody> call, @NonNull final Response<ResponseBody> response) {
+            public void onResponse(@NonNull final Call<ResponseBody> call,
+                                   @NonNull final Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
                     assert response.body() != null;
 
                     try {
-                        try {
-                            apiResponseCallBack.onSuccess(response.body().string());
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    } catch (JSONException exception) {
+                        apiResponseCallBack.onSuccess(response.body().string());
+                    } catch (IOException | JSONException exception) {
                         throw new RuntimeException(exception);
                     }
                 } else {
@@ -124,7 +139,8 @@ public class AuthenticationService {
             }
 
             @Override
-            public void onFailure(@NonNull final Call<ResponseBody> call, @NonNull final Throwable throwable) {
+            public void onFailure(@NonNull final Call<ResponseBody> call,
+                                  @NonNull final Throwable throwable) {
                 apiResponseCallBack.onError(throwable.getMessage());
             }
         });

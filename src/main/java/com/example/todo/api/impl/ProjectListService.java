@@ -1,8 +1,9 @@
-package com.example.todo.api;
+package com.example.todo.api.impl;
 
 import androidx.annotation.NonNull;
 
-import com.example.todo.model.Todo;
+import com.example.todo.api.ProjectApiService;
+import com.example.todo.model.Project;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,11 +18,11 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class TodoItemService {
+public class ProjectListService {
 
-    private final TodoApiService apiService;
+    private final ProjectApiService apiService;
 
-    public TodoItemService(final String baseUrl, final String token) {
+    public ProjectListService(final String baseUrl, final String token) {
         final OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
 
         httpClient.addInterceptor(new Interceptor(token));
@@ -32,48 +33,44 @@ public class TodoItemService {
                 .client(okHttpClient)
                 .build();
 
-        apiService = retrofit.create(TodoApiService.class);
+        apiService = retrofit.create(ProjectApiService.class);
     }
 
-    public void create(final String todo, final String projectId, final AuthenticationService.ApiResponseCallBack apiResponseCallBack) {
-        final Call<ResponseBody> responseBodyCall = apiService.create(todo, projectId);
+    public void create(final Project project,
+                       final AuthenticationService.ApiResponseCallBack apiResponseCallBack) {
+        final Call<ResponseBody> responseBodyCall = apiService.create(project);
 
         executeRequest(responseBodyCall, apiResponseCallBack);
     }
 
-    public void getAll(final AuthenticationService.ApiResponseCallBack callBack) {
-        final Call<ResponseBody> call = apiService.getAll();
+    public void getAll(final AuthenticationService.ApiResponseCallBack apiResponseCallBack) {
+        final Call<ResponseBody> responseBodyCall = apiService.getAll();
 
-        executeRequest(call, callBack);
+        executeRequest(responseBodyCall, apiResponseCallBack);
     }
 
-    public void delete(final String id, final AuthenticationService.ApiResponseCallBack callBack) {
-        final Call<ResponseBody> call = apiService.delete(id);
+    public void delete(final String id,
+                       final AuthenticationService.ApiResponseCallBack apiResponseCallBack) {
+        final Call<ResponseBody> responseBodyCall = apiService.delete(id);
 
-        executeRequest(call, callBack);
+        executeRequest(responseBodyCall, apiResponseCallBack);
     }
 
-    public void updateOrder(final Todo todo, final AuthenticationService.ApiResponseCallBack callBack) {
-        final Call<ResponseBody> call = apiService.updateOrder(todo.getId(),
-                Math.toIntExact(todo.getOrder()), todo.getParentId());
+    public void updateOrder(final Project project,
+                            final AuthenticationService.ApiResponseCallBack apiResponseCallBack) {
+        final Call<ResponseBody> responseBodyCall = apiService.updateOrder(project.getId(),
+                Math.toIntExact(project.getOrder()));
 
-        executeRequest(call, callBack);
+        executeRequest(responseBodyCall, apiResponseCallBack);
     }
 
-    public void updateStatus(final Todo todo,
-                             final AuthenticationService.ApiResponseCallBack callBack) {
-        final boolean isCompleted = todo.getStatus() == Todo.Status.COMPLETED;
-        final Call<ResponseBody> call = apiService.updateStatus(todo.getId(), isCompleted,
-                todo.getParentId());
-
-        executeRequest(call, callBack);
-    }
-
-    private void executeRequest(final Call<ResponseBody> responseBodyCall, final AuthenticationService.ApiResponseCallBack apiResponseCallBack) {
+    private void executeRequest(final Call<ResponseBody> responseBodyCall,
+                                final AuthenticationService.ApiResponseCallBack apiResponseCallBack) {
         responseBodyCall.enqueue(new Callback<ResponseBody>() {
 
             @Override
-            public void onResponse(@NonNull final Call<ResponseBody> call, @NonNull final Response<ResponseBody> response) {
+            public void onResponse(@NonNull final Call<ResponseBody> call,
+                                   @NonNull final Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
                     assert response.body() != null;
 
@@ -98,10 +95,10 @@ public class TodoItemService {
             }
 
             @Override
-            public void onFailure(@NonNull final Call<ResponseBody> call, @NonNull final Throwable throwable) {
+            public void onFailure(@NonNull final Call<ResponseBody> call,
+                                  @NonNull final Throwable throwable) {
                 apiResponseCallBack.onError(throwable.getMessage());
             }
         });
     }
-
 }

@@ -19,7 +19,7 @@ public class TodoController {
     }
 
     public void goToSearchActivity() {
-        service.navigateToSearchActivity();
+        service.startSearchActivity();
     }
 
     public void onClickAddVisibility() {
