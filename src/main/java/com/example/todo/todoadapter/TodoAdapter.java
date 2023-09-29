@@ -14,8 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todo.R;
-import com.example.todo.TypeFaceUtil;
 import com.example.todo.model.Todo;
+import com.example.todo.service.impl.TypeFaceUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,18 +38,18 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final ViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull final ViewHolder viewHolder, final int position) {
         final Todo todoItem = todoList.get(position);
-        final Typeface typeface = TypeFaceUtil.getSelectedTypeFace();
-        final float fontSize = TypeFaceUtil.getSelectedFontSize();
+        final Typeface typeface = TypeFaceUtil.getSelectedTypeface();
+        final float fontSize = TypeFaceUtil.getSelectedTextSize();
 
         if (null != typeface) {
-            holder.todoTextView.setTypeface(typeface);
+            viewHolder.textView.setTypeface(typeface);
         } else if (0 != fontSize){
-            holder.todoTextView.setTextSize(fontSize);
+            viewHolder.textView.setTextSize(fontSize);
         }
 
-        holder.bind(todoItem, onItemClickListener);
+        viewHolder.bind(todoItem, onItemClickListener);
     }
 
     @Override
@@ -93,15 +93,15 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder> {
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
-        private final TextView todoTextView;
+        private final TextView textView;
         private final CheckBox checkBox;
-        private final ImageButton todoRemoveButton;
+        private final ImageButton removeButton;
 
-        public ViewHolder(final View itemView) {
-            super(itemView);
-            todoTextView = itemView.findViewById(R.id.todoTextView);
-            checkBox = itemView.findViewById(R.id.todoCheckBox);
-            todoRemoveButton = itemView.findViewById(R.id.todoRemoveButton);
+        public ViewHolder(final View view) {
+            super(view);
+            textView = view.findViewById(R.id.textView);
+            checkBox = view.findViewById(R.id.checkBox);
+            removeButton = view.findViewById(R.id.removeButton);
             checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 final int position = getAdapterPosition();
 
@@ -110,11 +110,11 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder> {
 
                     todoItem.setChecked();
                     todoItem.setStatus(isChecked ? Todo.Status.COMPLETED : Todo.Status.NOT_COMPLETED);
-                    todoTextView.setTextColor(todoItem.getStatus() == Todo.Status.COMPLETED ? Color.GRAY : Color.BLACK);
+                    textView.setTextColor(todoItem.getStatus() == Todo.Status.COMPLETED ? Color.GRAY : Color.BLACK);
                     onItemClickListener.onCheckBoxClick(todoItem);
                 }
             });
-            todoRemoveButton.setOnClickListener(v -> {
+            removeButton.setOnClickListener(v -> {
                 final int position = getAdapterPosition();
 
                 if (position != RecyclerView.NO_POSITION) {
@@ -129,10 +129,10 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder> {
 
         public void bind(final Todo todoItem, final OnItemClickListener listener) {
             checkBox.setChecked(todoItem.getStatus() == Todo.Status.COMPLETED);
-            todoTextView.setText(todoItem.getName());
-            todoTextView.setTextColor(todoItem.getStatus() == Todo.Status.COMPLETED ? Color.RED : Color.BLACK);
+            textView.setText(todoItem.getName());
+            textView.setTextColor(todoItem.getStatus() == Todo.Status.COMPLETED ? Color.GRAY : Color.BLACK);
             checkBox.setOnClickListener(v -> listener.onCheckBoxClick(todoItem));
-            todoRemoveButton.setOnClickListener(v -> listener.onCloseIconClick(todoItem));
+            removeButton.setOnClickListener(v -> listener.onCloseIconClick(todoItem));
         }
     }
 }

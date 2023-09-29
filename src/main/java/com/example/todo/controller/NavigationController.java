@@ -12,7 +12,7 @@ public class NavigationController {
     }
 
     public void onListItemClicked(final Project project) {
-        navigationService.goToListPage(project);
+        navigationService.startTodoActivity(project);
     }
 
     public void onAddProject() {

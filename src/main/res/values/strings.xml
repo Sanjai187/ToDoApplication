@@ -33,12 +33,10 @@
     <string name="user_id">User Id</string>
     <string name="enter_the_project">Enter the project</string>
     <string name="project_list">Project List</string>
-    <string name="navigation_view">Navigation View</string>
     <string name="edit">Edit</string>
     <string name="search_view">Search View</string>
     <string name="exist_name">Exist Name</string>
     <string name="exist_title">Exist Title</string>
-    <string name="settingview">SettingView</string>
     <string name="font_family">Font Family</string>
     <string name="font_size">Font Size</string>
     <string name="default_color">Default Colour</string>
@@ -127,10 +125,11 @@
     <string name="todo_item_created">Todo item created</string>
     <string name="sort_order">sort_order</string>
     <string name="additional_attributes">additional_attributes</string>
-    <string name="created_by">created_by</string>
+    <string name="created">created_by</string>
     <string name="update_successfully">Update Successfully</string>
     <string name="all">All</string>
     <string name="completed">Completed</string>
     <string name="not_completed">Not Completed</string>
     <string name="status">Status</string>
+    <string name="todo">TODO</string>
 </resources>

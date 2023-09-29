@@ -1,4 +1,4 @@
-package com.example.todo;
+package com.example.todo.service.impl;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,19 +8,20 @@ import android.widget.RelativeLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.todo.R;
 import com.example.todo.controller.ActivatorController;
 import com.example.todo.service.ActivatorService;
 
 /**
  *
  * <p>
- * Representing the main activity of the Todo application
+ * The main activity of the Todo application.
  * </p>
  *
  * @author sanjai
  * @version 1.0
  */
-public class Activator extends AppCompatActivity implements ActivatorService{
+public class Activator extends AppCompatActivity implements ActivatorService {
 
     private String token;
     private ActivatorController activatorController;
@@ -30,7 +31,7 @@ public class Activator extends AppCompatActivity implements ActivatorService{
      * Creation of the main activity
      * </p>
      *
-     * @param savedInstanceState Refers the saved instance of the state
+     * @param savedInstanceState A bundle containing the saved state.
      */
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -44,27 +45,42 @@ public class Activator extends AppCompatActivity implements ActivatorService{
 
         menuButton.setOnClickListener(view -> activatorController.onClickMenu());
         settingButton.setOnClickListener(view -> activatorController.onClickSetting());
-        TypeFaceUtil.applyFontToView(getWindow().getDecorView().findViewById(android.R.id.content));
+        TypeFaceUtil.applyTypefaceToView(getWindow().getDecorView().findViewById(android.R.id.content));
         TypeFaceUtil.applyTextSizeToView(getWindow().getDecorView().findViewById(android.R.id.content));
         applyColorToComponent();
     }
 
+    /**
+     * <p>
+     * Navigate to the navigation activity.
+     * </p>
+     */
     @Override
-    public void goToNavigation() {
+    public void startNavigationActivity() {
         final Intent intent = new Intent(Activator.this, NavigationActivity.class);
 
         intent.putExtra(getString(R.string.token), token);
         startActivity(intent);
     }
 
+    /**
+     * <p>
+     * Navigate to the setting activity.
+     * </p>
+     */
     @Override
-    public void navigateToSettings() {
+    public void startSettingActivity() {
         final Intent intent = new Intent(Activator.this, SettingActivity.class);
 
         intent.putExtra(getString(R.string.token), token);
         startActivity(intent);
     }
 
+    /**
+     * <p>
+     * Apply the selected color theme to UI components.
+     * </p>
+     */
     private void applyColorToComponent() {
         final int defaultColor = TypeFaceUtil.getSelectedDefaultColor();
         final RelativeLayout layout = findViewById(R.id.relativeLayout);

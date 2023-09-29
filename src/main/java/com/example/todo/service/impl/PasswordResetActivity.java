@@ -1,10 +1,6 @@
-package com.example.todo;
-
-import androidx.appcompat.app.AppCompatActivity;
+package com.example.todo.service.impl;
 
 import android.annotation.SuppressLint;
-import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -13,11 +9,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
-import com.example.todo.api.AuthenticationService;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.todo.R;
+import com.example.todo.api.impl.AuthenticationService;
+import com.example.todo.controller.PasswordResetController;
 import com.example.todo.model.Credential;
+import com.example.todo.service.PasswordResetService;
 import com.google.android.material.snackbar.Snackbar;
 
-public class PasswordResetActivity extends AppCompatActivity {
+public class PasswordResetActivity extends AppCompatActivity implements PasswordResetService {
 
     private EditText emailEditText;
     private EditText newHintEditText;
@@ -27,7 +28,7 @@ public class PasswordResetActivity extends AppCompatActivity {
     private boolean isPasswordVisible;
     private ImageView newPasswordVisibilityToggle;
     private ImageView confirmPasswordVisibilityToggle;
-    private AuthenticationService authService;
+    private PasswordResetController passwordResetController;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -40,6 +41,7 @@ public class PasswordResetActivity extends AppCompatActivity {
     }
 
     private void initializeViews() {
+        passwordResetController = new PasswordResetController((PasswordResetService) this);
         emailEditText = findViewById(R.id.emailEdit);
         newHintEditText = findViewById(R.id.newHint);
         oldHintEditText = findViewById(R.id.oldHint);
@@ -54,28 +56,30 @@ public class PasswordResetActivity extends AppCompatActivity {
         final Button resetPassword = findViewById(R.id.resetPassword);
 
         cancel.setOnClickListener(view -> onBackPressed());
-        newPasswordVisibilityToggle.setOnClickListener(view -> togglePasswordVisibility(newPasswordEditText, newPasswordVisibilityToggle));
-        confirmPasswordVisibilityToggle.setOnClickListener(view -> togglePasswordVisibility(confirmPasswordEditText, confirmPasswordVisibilityToggle));
-        resetPassword.setOnClickListener(view -> attemptPasswordReset());
+        newPasswordVisibilityToggle.setOnClickListener(view -> passwordResetController.onClickPasswordVisibility(newPasswordEditText, newPasswordVisibilityToggle));
+        confirmPasswordVisibilityToggle.setOnClickListener(view -> passwordResetController.onClickPasswordVisibility(confirmPasswordEditText, confirmPasswordVisibilityToggle));
+        resetPassword.setOnClickListener(view -> passwordResetController.onClickPasswordReset());
     }
 
-    private void togglePasswordVisibility(final EditText passwordField, final ImageView visibilityToggle) {
+    public void togglePasswordVisibility(final EditText editText, final ImageView visibility) {
         if (isPasswordVisible) {
-            passwordField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+            editText.setInputType(InputType.TYPE_CLASS_TEXT |
+                    InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
             isPasswordVisible = false;
-            visibilityToggle.setImageResource(R.drawable.visibility);
+            visibility.setImageResource(R.drawable.visibility);
         } else {
-            passwordField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            editText.setInputType(InputType.TYPE_CLASS_TEXT |
+                    InputType.TYPE_TEXT_VARIATION_PASSWORD);
             isPasswordVisible = true;
-            visibilityToggle.setImageResource(R.drawable.visibility_off);
+            visibility.setImageResource(R.drawable.visibility_off);
         }
-        passwordField.setSelection(passwordField.getText().length());
+        editText.setSelection(editText.getText().length());
     }
 
-    private void attemptPasswordReset() {
+    public void attemptPasswordReset() {
         final Credential credential = createCredential();
         if (credential != null) {
-            authService = new AuthenticationService(getString(R.string.base_url));
+            final AuthenticationService authService = new AuthenticationService(getString(R.string.base_url));
             authService.resetPassword(credential, newHintEditText.getText().toString().trim(),
                     new AuthenticationService.ApiResponseCallBack() {
                         @Override
@@ -114,8 +118,7 @@ public class PasswordResetActivity extends AppCompatActivity {
     }
 
     private void showSnackBar(final String message) {
-        final View view = findViewById(android.R.id.content);
-        final Snackbar snackbar = Snackbar.make(view, message, Snackbar.LENGTH_SHORT);
+        final Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_SHORT);
 
         snackbar.show();
     }

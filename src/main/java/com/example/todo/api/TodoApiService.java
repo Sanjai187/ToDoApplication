@@ -16,15 +16,19 @@ public interface TodoApiService {
     @POST("api/v1/item")
     Call<ResponseBody> create(@Field("name") final String name,
                               @Field("project_id") final String projectId);
+
     @GET("api/v1/item")
     Call<ResponseBody> getAll();
+
     @DELETE("api/v1/item/{itemId}")
     Call<ResponseBody> delete(@Path("itemId") final String itemId);
+
     @FormUrlEncoded
     @PUT("api/v1/item/{itemId}")
     Call<ResponseBody> updateOrder(@Path("itemId") final String itemId,
                                    @Field("sort_order") final int sortingOrder,
                                    @Field("project_id") final String projectId);
+
     @FormUrlEncoded
     @PUT("api/v1/item/{itemId}")
     Call<ResponseBody> updateStatus(@Path("itemId") final String id,

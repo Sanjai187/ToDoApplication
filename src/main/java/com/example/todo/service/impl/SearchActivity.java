@@ -1,10 +1,4 @@
-package com.example.todo;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SearchView;
-import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+package com.example.todo.service.impl;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
@@ -16,8 +10,15 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.example.todo.api.AuthenticationService;
-import com.example.todo.api.TodoItemService;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.todo.R;
+import com.example.todo.api.impl.AuthenticationService;
+import com.example.todo.api.impl.TodoItemService;
 import com.example.todo.controller.SearchController;
 import com.example.todo.model.Filter;
 import com.example.todo.model.Query;
@@ -51,7 +52,7 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
     private TextView pageNumber;
     private ImageView previous;
     private ImageView next;
-    private int pageSize = 5;
+    private int pageSize;
     private Query query;
     private String projectId;
     private TodoAdapter todoAdapter;
@@ -97,13 +98,14 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
         backButton.setOnClickListener(view -> onBackPressed());
         next.setOnClickListener(view -> navigateToNextPage());
         previous.setOnClickListener(view -> navigateToPreviousPage());
+        pageSize = Integer.parseInt(filterSpinner.getSelectedItem().toString());
 
         searchController.onClickSpinner();
         searchController.onClickSearchView();
         searchController.onClickFilterSpinner();
         loadTodoItemsFromDB();
         updatePageNumber();
-        TypeFaceUtil.applyFontToView(getWindow().getDecorView().findViewById(android.R.id.content));
+        TypeFaceUtil.applyTypefaceToView(getWindow().getDecorView().findViewById(android.R.id.content));
         TypeFaceUtil.applyTextSizeToView(getWindow().getDecorView().findViewById(android.R.id.content));
         applyColorToComponent();
     }
@@ -215,6 +217,10 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
                     updateRecyclerView();
                     todoAdapter.notifyDataSetChanged();
                     updatePageNumber();
+                } else {
+                    pageNumber.setVisibility(View.GONE);
+                    next.setVisibility(View.GONE);
+                    previous.setVisibility(View.GONE);
                 }
             }
 
@@ -235,7 +241,7 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
             for (int i = 0; i < data.length(); i++) {
                 final JSONObject jsonObject = data.getJSONObject(i);
 
-//                if (null != projectId && projectId.equals(jsonObject.getString(getString(R.string.project_id)))) {
+                if (null != projectId && projectId.equals(jsonObject.getString(getString(R.string.project_id)))) {
                     final Todo todoItem = new Todo(jsonObject.getString(getString(R.string.Name)));
 
                     todoItem.setId(jsonObject.getString(getString(R.string.id)));
@@ -243,7 +249,7 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
                     todoItem.setOrder((long) jsonObject.getInt(getString(R.string.sort_order)));
                     todoList.add(todoItem);
                 }
-//            }
+            }
             todoList.sort(Comparator.comparingLong(Todo::getOrder));
         } catch (JSONException exception) {
             throw new RuntimeException(exception);
@@ -253,8 +259,7 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
     }
 
     private void showSnackBar(final String message) {
-        final View view = findViewById(android.R.id.content);
-        final Snackbar snackbar = Snackbar.make(view, message, Snackbar.LENGTH_SHORT);
+        final Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_SHORT);
 
         snackbar.show();
     }
@@ -374,13 +379,12 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
 
     @Override
     public void setupFilterSpinner() {
-        final ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(this, R.array.page_filter,  android.R.layout.simple_spinner_item);
+        final ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(this, R.array.page_filter, android.R.layout.simple_spinner_item);
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         filterSpinner.setAdapter(spinnerAdapter);
         filterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(final AdapterView<?> parent, final View view,
-                                       final int i, final long id) {
+            public void onItemSelected(final AdapterView<?> parent, final View view, final int i, final long id) {
                 pageSize = Integer.parseInt(parent.getItemAtPosition(i).toString());
                 final int getTotalPages = (int) Math.ceil((double) todoItems.size() / pageSize);
 
@@ -392,13 +396,15 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
             }
 
             @Override
-            public void onNothingSelected(final AdapterView<?> parent) {}
+            public void onNothingSelected(final AdapterView<?> parent) {
+            }
         });
     }
 
     private void navigateToNextPage() {
         if ((currentPage * pageSize) < todoItems.size()) {
             currentPage++;
+            loadTodoItemsFromDB();
             updateRecyclerView();
             updatePageNumber();
         }
@@ -407,6 +413,7 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
     private void navigateToPreviousPage() {
         if (currentPage > 1) {
             currentPage--;
+            loadTodoItemsFromDB();
             updateRecyclerView();
             updatePageNumber();
         }
@@ -421,10 +428,13 @@ public class SearchActivity extends AppCompatActivity implements SearchService {
 
     @SuppressLint("NotifyDataSetChanged")
     private void updateRecyclerView() {
-        final int startIndex = (currentPage - 1) * pageSize;
+        int startIndex = (currentPage - 1) * pageSize;
         final int endIndex = Math.min(startIndex + pageSize, todoItems.size());
-        final List<Todo> pageItems = todoItems.subList(startIndex, endIndex);
 
+        if (0 > startIndex) {
+            startIndex = 0;
+        }
+        final List<Todo> pageItems = todoItems.subList(startIndex, endIndex);
         todoAdapter.updateTodoItems(pageItems);
         todoAdapter.notifyDataSetChanged();
     }

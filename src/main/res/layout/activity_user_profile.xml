@@ -60,7 +60,7 @@
         android:textColor="@android:color/black"
         android:layout_marginStart="25dp"
         android:textSize="20sp"
-        android:layout_marginTop="30dp"/>
+        android:layout_marginTop="25dp"/>
 
     <EditText
         android:id="@+id/editTitle"
@@ -69,7 +69,6 @@
         android:layout_marginStart="25dp"
         android:hint="@string/enter_the_title"
         android:padding="15dp"
-        android:importantForAutofill="yes"
         android:inputType="text" />
 
     <RelativeLayout

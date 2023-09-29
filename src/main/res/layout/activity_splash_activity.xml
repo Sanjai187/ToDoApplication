@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".service.impl.SplashActivity">
+
+    <ImageView
+        android:id="@+id/todo"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginTop="150dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/todo"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.337"
+        android:contentDescription="@string/todo" />
+
+    <ImageView
+        android:id="@+id/loading"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="400dp"
+        android:layout_marginStart="180dp"
+        android:src="@drawable/loading"
+        tools:layout_editor_absoluteX="180dp"
+        tools:layout_editor_absoluteY="386dp"
+        android:contentDescription="@string/todo"
+        android:visibility="visible"/>
+
+
+</RelativeLayout>

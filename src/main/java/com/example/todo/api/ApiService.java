@@ -18,19 +18,31 @@ public interface ApiService {
 
     @POST("api/v1/user/signup")
     Call<ResponseBody> signUpRequest(@Body final SignUp signUp);
+
     @POST("api/v1/user/login")
     Call<ResponseBody> singInRequest(@Body final Credential credential);
+
     @POST("api/v1/user/reset/password")
     Call<ResponseBody> resetPasswordRequest(@Body final ResetPassword resetPassword);
+
     @GET("api/v1/user/details")
     Call<ResponseBody> getUserDetail();
+
     @PUT("api/v1/user/details")
     Call<ResponseBody> updateUserDetail(@Body final UserProfile userProfile);
+
     @GET("api/v1/user/system/settings")
     Call<ResponseBody> getSystemSetting();
+
     @FormUrlEncoded
     @PUT("api/v1/user/system/settings")
-    Call<ResponseBody> updateSystemSetting(@Field("font_family") final String font,
-                                           @Field("font_size") final int size,
-                                           @Field("color") final String color);
+    Call<ResponseBody> updateFontFamily(@Field("font_family") final String fontFamily);
+
+    @FormUrlEncoded
+    @PUT("api/v1/user/system/settings")
+    Call<ResponseBody> updateFontSize(@Field("font_size") final int fontSize);
+
+    @FormUrlEncoded
+    @PUT("api/v1/user/system/settings")
+    Call<ResponseBody> updateColor(@Field("color") final String color);
 }

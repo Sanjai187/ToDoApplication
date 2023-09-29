@@ -1,4 +1,4 @@
-package com.example.todo;
+package com.example.todo.service.impl;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -12,7 +12,8 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.todo.api.AuthenticationService;
+import com.example.todo.R;
+import com.example.todo.api.impl.AuthenticationService;
 import com.example.todo.model.UserProfile;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -71,7 +72,7 @@ public class UserProfileActivity extends AppCompatActivity {
                 }
             }
         });
-        TypeFaceUtil.applyFontToView(getWindow().getDecorView().findViewById(android.R.id.content));
+        TypeFaceUtil.applyTypefaceToView(getWindow().getDecorView().findViewById(android.R.id.content));
         TypeFaceUtil.applyTextSizeToView(getWindow().getDecorView().findViewById(android.R.id.content));
         applyColorToComponent();
     }
@@ -90,8 +91,7 @@ public class UserProfileActivity extends AppCompatActivity {
     }
 
     private void showSnackBar(final String message) {
-        final View view = findViewById(android.R.id.content);
-        final Snackbar snackbar = Snackbar.make(view, message, Snackbar.LENGTH_SHORT);
+        final Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_SHORT);
 
         snackbar.show();
     }

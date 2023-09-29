@@ -11,10 +11,10 @@ public class ActivatorController {
     }
 
     public void onClickMenu() {
-        activatorService.goToNavigation();
+        activatorService.startNavigationActivity();
     }
 
     public void onClickSetting() {
-        activatorService.navigateToSettings();
+        activatorService.startSettingActivity();
     }
 }

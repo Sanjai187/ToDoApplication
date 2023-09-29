@@ -12,9 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.todo.R;
-import com.example.todo.TypeFaceUtil;
-import com.example.todo.dao.ProjectDao;
 import com.example.todo.model.Project;
+import com.example.todo.service.impl.TypeFaceUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,7 +21,6 @@ import java.util.List;
 public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHolder> {
 
     private final List<Project> projects;
-    private final ProjectDao projectDao;
     private OnItemClickListener onItemClickListener;
 
     public interface OnItemClickListener {
@@ -32,9 +30,8 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
         void onProjectOrderUpdateListener(final Project fromProject, final Project toProject);
     }
 
-    public ProjectAdapter(final List<Project> projects, final ProjectDao projectDao) {
+    public ProjectAdapter(final List<Project> projects) {
         this.projects = projects;
-        this.projectDao = projectDao;
     }
 
     public void setOnItemClickListener(final OnItemClickListener listener) {
@@ -53,8 +50,8 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull final ProjectAdapter.ViewHolder holder, final int position) {
         final Project project = projects.get(position);
-        final Typeface typeface = TypeFaceUtil.getSelectedTypeFace();
-        final float fontSize = TypeFaceUtil.getSelectedFontSize();
+        final Typeface typeface = TypeFaceUtil.getSelectedTypeface();
+        final float fontSize = TypeFaceUtil.getSelectedTextSize();
 
         if (null != typeface) {
             holder.projectNameTextView.setTypeface(typeface);
@@ -64,8 +61,10 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ViewHold
 
         holder.projectNameTextView.setText(project.getName());
         holder.itemView.setOnClickListener(view -> {
-            if (null != onItemClickListener) {
-                onItemClickListener.onItemClick(position);
+            final int position1 = holder.getAdapterPosition();
+
+            if (position1 != RecyclerView.NO_POSITION) {
+                onItemClickListener.onItemClick(position1);
             }
         });
     }
